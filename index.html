@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Juego educativo de redes informáticas: investigá el incidente en NEXUS Corp.">
+  <title>Detective de Redes</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <main class="contenedor">
+
+    <section id="pantalla-menu" class="escena activa" aria-label="Menú principal">
+      <header class="presentacion">
+        <span class="insignia">NEXUS Corp &middot; Caso N&deg;001</span>
+        <h1>Detective de <span class="destacado">Redes</span></h1>
+        <p class="eslogan">Durante la madrugada un incidente afectó la infraestructura de NEXUS Corp. Investigá qué ocurrió, reconstruí la red y recuperá el control.</p>
+      </header>
+      <div class="panel-acciones">
+        <button id="boton-nueva-investigacion" class="boton boton-primario" type="button">Nueva investigación</button>
+        <button id="boton-continuar" class="boton" type="button" disabled>Continuar investigación</button>
+      </div>
+      <p id="estado-progreso" class="nota" aria-live="polite"></p>
+    </section>
+
+    <section id="pantalla-juego" class="escena" aria-label="Investigación">
+      <header class="encabezado-juego">
+        <h2 id="titulo-fase"></h2>
+        <p class="meta-info"><span id="avance-desafios"></span> &middot; Puntaje: <span id="marcador-puntaje">0</span></p>
+      </header>
+      <div id="contenedor-desafio" class="capa-desafio" aria-live="polite"></div>
+      <div class="barra-navegacion">
+        <button id="boton-siguiente" class="boton" type="button" hidden>Siguiente desafío</button>
+      </div>
+    </section>
+
+    <section id="pantalla-informe" class="escena" aria-label="Informe de investigación">
+      <header class="presentacion informe-presentacion">
+        <span class="insignia">NEXUS Corp &middot; Caso resuelto</span>
+        <h1 class="titulo-informe">Informe de investigación</h1>
+      </header>
+      <div id="contenido-informe" class="capa-desafio"></div>
+      <div class="panel-acciones">
+        <button id="boton-reiniciar" class="boton boton-primario" type="button">Nueva investigación</button>
+        <button id="boton-menu" class="boton" type="button">Volver al menú</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="data/contenido.js"></script>
+  <script src="js/gestor-escenas.js"></script>
+  <script src="js/puntaje.js"></script>
+  <script src="js/progreso.js"></script>
+  <script src="js/pistas.js"></script>
+  <script src="js/motor.js"></script>
+  <script src="js/escena-juego.js"></script>
+  <script src="js/escena-informe.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
