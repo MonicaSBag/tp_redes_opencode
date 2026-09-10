@@ -37,6 +37,8 @@ openCode/
 │   └── main.js                # Arranque: registra escenas y botones
 ├── data/
 │   └── contenido.js           # window.CONTENIDO (fases, desafios)
+├── tests/
+│   └── test-flujo.js          # Test de integracion con stubs de DOM (Node)
 ├── Documentacion/
 │   ├── Detective de Redes.docx        # Diseno original (no editar)
 │   ├── Requisitos - Detective de Redes.md
@@ -61,7 +63,7 @@ python -m http.server 8000
 for f in data/contenido.js js/*.js; do node --check "$f"; done
 
 # Test de integracion del flujo de juego (requiere Node):
-node C:/Users/monic/AppData/Local/Temp/opencode/test-flujo.js
+node tests/test-flujo.js
 
 # Instalar dependencias de Python (solo para leer/editar .docx):
 pip install -r requirements.txt
@@ -86,7 +88,7 @@ Registro cronologico de los puntos importantes de cada sesion de trabajo. Regla:
 - Implementados los HITOS 0 y 1 (T-01 a T-08): estructura de carpetas, `index.html` (3 pantallas: menu, juego, informe), `css/estilos.css`, `js/gestor-escenas.js`, `js/puntaje.js`, `js/progreso.js`, `js/pistas.js`, `js/motor.js`, `js/escena-juego.js`, `js/escena-informe.js`, `js/menu.js`, `js/main.js`, y `data/contenido.js` con 6 desafios demo (4 de Fase 1).
 - Convencion IMPORTANTE: los modulos se exponen en `window` y se referencian entre si SIEMPRE con `window.NombreModulo` (jamas import/export). `data/contenido.js` expone `window.CONTENIDO`.
 - El flujo completo del juego funciona (responder, puntaje, pistas, informe) y se valida con el test de integracion en Node:
-  `node C:/Users/monic/AppData/Local/Temp/opencode/test-flujo.js` (usa stubs de DOM; no tocar codigo del juego para que pase).
+  `node tests/test-flujo.js` (usa stubs de DOM; no tocar codigo del juego para que pase).
 - Estado de avance: 0 de 3 fases con contenido completo. Siguiente paso acordado: Hito 2 (contenido completo de Fase 1 + diagrama interactivo de reconstruccion de la red, T-09 a T-12).
 
 ### 2026-09-09 - Usuario: monic - Cierre de sesion (continuacion)
@@ -95,3 +97,11 @@ Registro cronologico de los puntos importantes de cada sesion de trabajo. Regla:
 - Se implemento el protocolo de cierre de sesion en la Bitacora de sesiones (ver Reglas importantes): cuando un companero escribe **"Realizar el cierre de sesion"**, el agente agrega una entrada nueva al final con usuario y fecha.
 - Estado general: flujo completo jugable y verificado con el test de integracion. Todas las tareas T-01 a T-08 marcadas como completadas en `context/project_milestones.md`.
 - Proximos pasos (en orden): Hito 2 (contenido completo de Fase 1, T-09 a T-12) y luego Hitos 3 a 7. Sin cambios de stack pendientes.
+
+### 2026-09-09 - Usuario: monic - Cierre de sesion (continuacion, revision de seguridad)
+
+- Se reviso la exposicion de datos sensibles en todo el proyecto (patrones de API keys, tokens, passwords, claves privadas, JWTs): resultado sin coincidencias. Verificacion adicional con `git ls-files` y `git check-ignore`: `.env/` (venv de Python) queda excluido del repo.
+- Se detecto que `CONTEXT.md` y el test exponian la ruta local (usuario de Windows y rutas de maquina). Solucion aplicada: se movio el test al repo en `tests/test-flujo.js` con ruta relativa (`RAIZ = path.resolve(__dirname, "..")`) y se actualizo `CONTEXT.md` (comando `node tests/test-flujo.js` y arbol de estructura con `tests/`).
+- Establecido como practica: en los archivos versionados NO deben aparecer rutas locales absolutas ni nombres de usuario de la maquina.
+- El test de integracion sigue pasando desde la nueva ubicacion: `node tests/test-flujo.js`.
+- Estado general: mismo que el cierre anterior (flujo completo jugable, T-01 a T-08 completadas, 0 de 3 fases con contenido completo). Proximos pasos sin cambio: Hito 2 (T-09 a T-12) y luego Hitos 3 a 7.
