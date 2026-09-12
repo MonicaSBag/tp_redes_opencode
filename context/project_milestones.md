@@ -6,7 +6,7 @@ Desarrollar un juego educativo de redes informaticas, web y sin backend, donde e
 
 ## Estado actual
 
-**Fase actual:** Hito 2 completado (Fase 1 con contenido completo, diagrama interactivo y cierre narrativo). Siguiente: Hito 3 (contenido completo de la Fase 2 y panel de evidencias).
+**Fase actual:** Hito 3 completado (Fase 2 con contenido completo, panel de evidencias y flujo de avance entre fases). Siguiente: Hito 4 (contenido completo de la Fase 3).
 
 ## Seguimiento de tareas
 
@@ -31,14 +31,14 @@ Desarrollar un juego educativo de redes informaticas, web y sin backend, donde e
 - [x] T-11 Desafios de identificacion de dispositivos y segmentos (f1-05 Router, f1-06 Gateway, f1-07 LAN/WAN, f1-09 VLAN/segmentos).
 - [x] T-12 Cierre narrativo de la fase (pantalla "cierre" con la pieza y conceptos dominados, camino hacia el informe).
 
-### Hito 3 - Fase 2: Siguiendo las pistas (SIGUIENTE)
+### Hito 3 - Fase 2: Siguiendo las pistas
 
-- [ ] T-13 Contenido Fase 2 (TCP/IP, Flags, DHCP, DNS, ARP, NetBIOS, OSI). Hay 1 demo.
-- [ ] T-14 Panel de evidencias (logs, config, resultados de pruebas).
-- [ ] T-15 Desafios de analisis de paquetes.
-- [ ] T-16 Deteccion de trafico anomalo (cierre).
+- [x] T-13 Contenido Fase 2 (TCP/IP, TCP/Flags, DHCP, DNS, ARP, NetBIOS, Modelo OSI). 10 desafios (f2-01..f2-10).
+- [x] T-14 Panel de evidencias (tipo `evidencias`: registros, configuraciones y resultados de pruebas en formato lectura).
+- [x] T-15 Desafios de analisis de paquetes y comunicacion entre dispositivos (capturas TCP, netstat, nslookup, nbtstat).
+- [x] T-16 Deteccion de trafico anomalo como cierre narrativo de la fase (f2-10: barrido de puertos). Ademas se agrego el flujo de avance entre fases (boton "Avanzar a la Fase N" en el cierre).
 
-### Hito 4 - Fase 3: El ataque
+### Hito 4 - Fase 3: El ataque (SIGUIENTE)
 
 - [ ] T-17 Contenido Fase 3 (Firewall, DMZ, VPN, OSPF, STP, enlaces, Wireless). Hay 1 demo.
 - [ ] T-18 Analisis del punto vulnerable.
@@ -69,6 +69,7 @@ Desarrollar un juego educativo de redes informaticas, web y sin backend, donde e
 
 ## Notas
 
-- El flujo completo actual: menu → fase 1 (10 desafios, 1 interactivo) → cierre de fase (pieza + conceptos) → informe. Probado con el test de integracion `node tests/test-flujo.js`.
-- Las fases 2 y 3 conservan 1 desafio demo cada una; su contenido completo corresponde a Hitos 3 y 4.
+- El flujo completo actual: menu → fase 1 (10, 1 interactivo) → cierre → criterio "Avanzar a la Fase 2" → fase 2 (10, 9 con panel de evidencias) → cierre → fase 3 (demo) → cierre "Ver informe" → informe. Probado con `node tests/test-flujo.js`.
+- Paso de fase implementado: cada cierre ofrece avanzar a la siguiente fase; solo en la ultima ofrece el informe. `EscenaJuego.iniciarFase(id)` y `continuarInvestigacion` reanudan la fase pendiente.
+- Fase 3 conserva 1 desafio demo; su contenido completo corresponde al Hito 4.
 - Los tests de integracion se ejecutan con Node contra stubs de DOM (ver `CONTEXT.md`).

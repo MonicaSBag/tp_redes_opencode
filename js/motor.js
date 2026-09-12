@@ -158,6 +158,98 @@
     contenedor.appendChild(tarjeta);
   });
 
+  registrarTipo("evidencias", function (contenedor, fase, desafio, indice, total, config) {
+    contenedor.textContent = "";
+
+    var tarjeta = document.createElement("article");
+    tarjeta.className = "desafio";
+
+    var cabecera = crearCabecera(fase, indice, total, desafio.concepto);
+    var pregunta = crearPregunta(desafio.pregunta);
+
+    var bloqueEvidencias = document.createElement("div");
+    bloqueEvidencias.className = "evidencias";
+    var evidencias = desafio.datos && desafio.datos.evidencias ? desafio.datos.evidencias : [];
+    for (var e = 0; e < evidencias.length; e++) {
+      (function (evidencia) {
+        var panel = document.createElement("div");
+        panel.className = "evidencia";
+
+        var titulo = document.createElement("p");
+        titulo.className = "evidencia-titulo";
+        titulo.textContent = evidencia.titulo;
+
+        var detalle = document.createElement("pre");
+        detalle.className = "evidencia-detalle";
+        detalle.textContent = evidencia.detalle;
+
+        panel.appendChild(titulo);
+        panel.appendChild(detalle);
+        bloqueEvidencias.appendChild(panel);
+      })(evidencias[e]);
+    }
+
+    var opcionesContenedor = document.createElement("div");
+    opcionesContenedor.className = "desafio-opciones";
+    var botones = [];
+
+    function bloquearOpciones() {
+      for (var i = 0; i < botones.length; i++) {
+        botones[i].disabled = true;
+      }
+    }
+
+    function seleccionar(indiceSeleccionado, botonSeleccionado, configLibro) {
+      if (configLibro.resuelto) {
+        return;
+      }
+      var correcto = indiceSeleccionado === desafio.respuestaCorrecta;
+      retroalimentacion.hidden = false;
+
+      if (correcto) {
+        configLibro.resuelto = true;
+        botones[desafio.respuestaCorrecta].classList.add("correcta");
+        bloquearOpciones();
+        retroalimentacion.className = "desafio-retroalimentacion exito";
+        retroalimentacion.textContent = "Correcto. " + desafio.explicacion;
+        config.alResponderCorrectamente();
+      } else {
+        botonSeleccionado.classList.add("incorrecta");
+        botonSeleccionado.disabled = true;
+        retroalimentacion.className = "desafio-retroalimentacion error";
+        retroalimentacion.textContent = "Incorrecto. Revisá la evidencia y volvé a intentarlo.";
+        config.alResponderIncorrectamente();
+      }
+    }
+
+    for (var i = 0; i < desafio.opciones.length; i++) {
+      (function (indiceOpcion, texto) {
+        var boton = document.createElement("button");
+        boton.type = "button";
+        boton.className = "desafio-opcion";
+        boton.textContent = texto;
+        boton.addEventListener("click", function () {
+          seleccionar(indiceOpcion, boton, configLibro);
+        });
+        botones.push(boton);
+        opcionesContenedor.appendChild(boton);
+      })(i, desafio.opciones[i]);
+    }
+
+    var pista = crearBloquePista(config, fase, desafio);
+    var retroalimentacion = crearRetroalimentacion();
+    var configLibro = { resuelto: false };
+
+    tarjeta.appendChild(cabecera);
+    tarjeta.appendChild(pregunta);
+    tarjeta.appendChild(bloqueEvidencias);
+    tarjeta.appendChild(opcionesContenedor);
+    tarjeta.appendChild(pista.contenedor);
+    tarjeta.appendChild(pista.boton);
+    tarjeta.appendChild(retroalimentacion);
+    contenedor.appendChild(tarjeta);
+  });
+
   registrarTipo("reconstruccion", function (contenedor, fase, desafio, indice, total, config) {
     contenedor.textContent = "";
 

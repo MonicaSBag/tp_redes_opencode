@@ -12,7 +12,8 @@ Notas de arquitectura y especificaciones para agentes de IA y editores inteligen
 | Contenido como objeto JS | `data/contenido.js` define `window.CONTENIDO` (objeto, no JSON fetch) para no depender de servidor local. |
 | Guardado | `localStorage` con clave `detective-redes:progreso`. |
 | Escenas | Secciones `.escena`; la activa lleva la clase `.activa` (ver `gestor-escenas.js`). Escenas: `menu`, `juego`, `cierre`, `informe`. |
-| Extraible por tipos | El motor registra "tipos" de desafio (`Motor.registrarTipo`). Implementados `opcion_multiple` y `reconstruccion`; se pueden agregar tipos nuevos. |
+| Extraible por tipos | El motor registra "tipos" de desafio (`Motor.registrarTipo`). Implementados `opcion_multiple`, `evidencias` y `reconstruccion`; se pueden agregar tipos nuevos. |
+| Avance entre fases | Al terminar una fase, el cierre ofrece avanzar a la siguiente; solo en la ultima ofrece el informe final. |
 | Anti-trampas | Las respuestas no se revelan hasta resolver; no se imprimen en consola. Sin esto se fuerza localStorage, aceptado en alcance. |
 
 ## Esquema de localStorage (clave `detective-redes:progreso`)
@@ -36,7 +37,7 @@ Notas de arquitectura y especificaciones para agentes de IA y editores inteligen
 
 ```js
 {
-  version: 2,
+  version: 3,
   fases: [
     {
       id: "fase1",
@@ -60,6 +61,32 @@ Notas de arquitectura y especificaciones para agentes de IA y editores inteligen
   ]
 }
 ```
+
+### Esquema del tipo `evidencias` (T-14 y T-15)
+
+Variante de `opcion_multiple` que antepone paneles de evidencia en formato lectura (logs, configuraciones, salidas de herramientas, capturas). `tipo: "evidencias"`, con `datos.evidencias`:
+
+```js
+{
+  id: "f2-05",
+  tipo: "evidencias",
+  concepto: "DNS",
+  pregunta: "...",
+  opciones: ["NetBIOS", "DHCP", "DNS", "ARP"],
+  respuestaCorrecta: 2,
+  pista: "...",
+  explicacion: "...",
+  datos: {
+    evidencias: [
+      { titulo: "Salida de nslookup", detalle: "> nslookup archivos.nexus.local\nServidor:  dns.nexus.local (192.168.1.10)\n..." }
+    ]
+  }
+}
+```
+
+- DOM del tipo (orden de `tarjeta.children`): `[0]` cabecera, `[1]` pregunta, `[2]` bloque `div.evidencias` (un panel `.evidencia` por cada evidencia, con titulo `.evidencia-titulo` y detalle `pre.evidencia-detalle` en monoespaciado), `[3]` contenedor de opciones (como en `opcion_multiple`).
+- `detalle` admite saltos de linea (`\n`); se inyecta con `textContent` (nunca `innerHTML` con datos).
+- Anti-trampas: `respuestaCorrecta` nunca va al DOM; se compara en runtime.
 
 ### Esquema del tipo `reconstruccion` (T-10)
 
@@ -125,12 +152,13 @@ Desafio interactivo de diagrama: se arma un "mapa" ubicando placas en nodos por 
 
 ### window.EscenaJuego
 - `iniciarInvestigacion()` - resetea progreso y comienza la fase 1.
-- `continuarInvestigacion()` - reanuda o va al informe.
-- Al completar la ultima pregunta de una fase, `finalizarFase` marca la fase como completada y navega a la escena `cierre` (`window.EscenaCierre.mostrar(fase, estado)`), no directamente al informe.
+- `iniciarFase(idFase)` - arranca (o reanuda desde cero) una fase especifica: setea `estado.faseActual`, `indiceDesafio = 0`, guarda y navega a "juego".
+- `continuarInvestigacion()` - reanuda la fase en curso o, si no hay fase activa, la siguiente fase pendiente; si todas estan completas va al informe.
+- Al completar la ultima pregunta de una fase, `finalizarFase` marca la fase como completada y navega a la escena `cierre` (`window.EscenaCierre.mostrar(fase, estado)`).
 
 ### window.EscenaCierre (T-12)
 - `mostrar(fase, estado)` - renderiza la narracion de cierre (`fase.pieza`) y los conceptos unicos de la fase como badges, y navega a la escena `cierre`.
-- El boton `boton-cierre-informe` reenvia al informe con `window.EscenaInforme.mostrar(estado)`.
+- Decide el boton `boton-cierre-avanzar`: si existe una fase siguiente muestra "Avanzar a la Fase N: <titulo>" y llama `window.EscenaJuego.iniciarFase(siguiente.id)`; en la ultima fase muestra "Ver informe de investigación" y llama `window.EscenaInforme.mostrar(estado)`.
 - Los estilos de cierre viven en `css/estilos.css` (`.cierre-narracion`, `.cierre-cabecera`, `.conceptos-wrap`).
 
 ### window.EscenaInforme
@@ -142,4 +170,4 @@ Desafio interactivo de diagrama: se arma un "mapa" ubicando placas en nodos por 
 ## Ventajas pendientes (roadmap)
 
 - No hay endpoints de API: al no haber backend, esta seccion no aplica. Si en el futuro se agrega servidor, documentar rutas aqui.
-- El diagrama interactivo (T-10) ya esta implementado como tipo `reconstruccion` (ver esquema arriba). Los seguimientos de Fase 2 y 3 (panel de evidencias, escenarios de contencion) se sumaran como tipos nuevos via `Motor.registrarTipo`.
+- Se implementaron hasta ahora como tipos: `opcion_multiple`, `evidencias` (T-14/T-15) y `reconstruccion` (T-10); el diagrama interactivo de Fase 1 es el caso de `reconstruccion`. El escenario de decision de contencion (T-19) se sumara como tipo nuevo via `Motor.registrarTipo`.

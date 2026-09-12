@@ -3,6 +3,15 @@
 
   var datosCierre = null;
 
+  function proximaFase(fase) {
+    for (var i = 0; i < window.CONTENIDO.fases.length; i++) {
+      if (window.CONTENIDO.fases[i].orden === fase.orden + 1) {
+        return window.CONTENIDO.fases[i];
+      }
+    }
+    return null;
+  }
+
   function conceptosUnicos(fase) {
     var vistos = [];
     for (var i = 0; i < fase.desafios.length; i++) {
@@ -45,12 +54,33 @@
     marco.appendChild(envoltorio);
     contenedor.appendChild(marco);
 
-    datosCierre = { fase: fase, estado: estado };
+    var siguiente = proximaFase(fase);
+    datosCierre = {
+      fase: fase,
+      estado: estado,
+      siguiente: siguiente
+    };
+
+    var boton = document.getElementById("boton-cierre-avanzar");
+    if (siguiente) {
+      boton.textContent = "Avanzar a la Fase " + siguiente.orden + ": " + siguiente.titulo;
+      boton.classList.add("boton-primario");
+    } else {
+      boton.textContent = "Ver informe de investigación";
+      boton.classList.remove("boton-primario");
+    }
+    boton.hidden = false;
+
     window.GestorEscenas.irA("cierre");
   }
 
-  document.getElementById("boton-cierre-informe").addEventListener("click", function () {
-    if (datosCierre) {
+  document.getElementById("boton-cierre-avanzar").addEventListener("click", function () {
+    if (!datosCierre) {
+      return;
+    }
+    if (datosCierre.siguiente) {
+      window.EscenaJuego.iniciarFase(datosCierre.siguiente.id);
+    } else {
       window.EscenaInforme.mostrar(datosCierre.estado);
     }
   });

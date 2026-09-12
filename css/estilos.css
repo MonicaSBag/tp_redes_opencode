@@ -374,6 +374,41 @@ body {
   }
 }
 
+/* ---------- Panel de evidencias ---------- */
+
+.evidencias {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.evidencia {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 0.9rem 1rem;
+}
+
+.evidencia-titulo {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.evidencia-detalle {
+  margin: 0;
+  font-family: var(--fuente-mono);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  padding: 0.7rem 0.9rem;
+  overflow-x: auto;
+}
+
 /* ---------- Diagrama de reconstrucción ---------- */
 
 .red-diagrama {

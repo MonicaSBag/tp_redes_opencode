@@ -78,13 +78,27 @@
     dibujarDesafioActual();
   }
 
-  function iniciarInvestigacion() {
-    estado = window.Progreso.reiniciar();
-    estado.faseActual = window.CONTENIDO.fases[0].id;
+  function iniciarFase(idFase) {
+    estado.faseActual = idFase;
     estado.indiceDesafio = 0;
     window.Progreso.guardar(estado);
     window.GestorEscenas.irA("juego");
     cargarFaseActual();
+  }
+
+  function iniciarInvestigacion() {
+    estado = window.Progreso.reiniciar();
+    iniciarFase(window.CONTENIDO.fases[0].id);
+  }
+
+  function proximaFasePendiente() {
+    for (var i = 0; i < window.CONTENIDO.fases.length; i++) {
+      var fase = window.CONTENIDO.fases[i];
+      if (estado.fasesCompletadas.indexOf(fase.id) === -1) {
+        return fase.id;
+      }
+    }
+    return null;
   }
 
   function continuarInvestigacion() {
@@ -93,7 +107,12 @@
       window.GestorEscenas.irA("juego");
       cargarFaseActual();
     } else {
-      window.EscenaInforme.mostrar(estado);
+      var pendiente = proximaFasePendiente();
+      if (pendiente) {
+        iniciarFase(pendiente);
+      } else {
+        window.EscenaInforme.mostrar(estado);
+      }
     }
   }
 
@@ -101,6 +120,7 @@
 
   window.EscenaJuego = {
     iniciarInvestigacion: iniciarInvestigacion,
+    iniciarFase: iniciarFase,
     continuarInvestigacion: continuarInvestigacion
   };
 })();
