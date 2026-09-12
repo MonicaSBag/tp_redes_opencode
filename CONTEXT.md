@@ -21,7 +21,7 @@ openCode/
 ├── README.md                  # Instrucciones de instalacion y uso
 ├── requirements.txt           # Dependencias de Python (solo documentacion)
 ├── .gitignore                 # Excluye .env/, caches, claves
-├── index.html                 # Punto de entrada (3 pantallas: menu, juego, informe)
+├── index.html                 # Punto de entrada (4 pantallas: menu, juego, cierre, informe)
 ├── css/
 │   └── estilos.css            # Tema "detective" con variables CSS
 ├── js/
@@ -32,6 +32,7 @@ openCode/
 │   ├── pistas.js              # window.Pistas - pistas y penalizacion
 │   ├── motor.js               # window.Motor - renderizar y validar desafios
 │   ├── escena-juego.js        # window.EscenaJuego - flujo de juego
+│   ├── escena-cierre.js       # window.EscenaCierre - cierre narrativo de fase
 │   ├── escena-informe.js      # window.EscenaInforme - informe final
 │   ├── menu.js                # window.Menu - menu principal
 │   └── main.js                # Arranque: registra escenas y botones

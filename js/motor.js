@@ -36,12 +36,7 @@
     return dibujador(contenedor, fase, desafio, indice, total, config);
   }
 
-  registrarTipo("opcion_multiple", function (contenedor, fase, desafio, indice, total, config) {
-    contenedor.textContent = "";
-
-    var tarjeta = document.createElement("article");
-    tarjeta.className = "desafio";
-
+  function crearCabecera(fase, indice, total, concepto) {
     var cabecera = document.createElement("header");
     cabecera.className = "desafio-cabecera";
 
@@ -49,16 +44,59 @@
     ruta.className = "desafio-ruta";
     ruta.textContent = "Fase " + fase.orden + " · Desafío " + (indice + 1) + " de " + total;
 
-    var concepto = document.createElement("span");
-    concepto.className = "badge";
-    concepto.textContent = desafio.concepto;
+    var badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = concepto;
 
     cabecera.appendChild(ruta);
-    cabecera.appendChild(concepto);
+    cabecera.appendChild(badge);
+    return cabecera;
+  }
 
+  function crearPregunta(texto) {
     var pregunta = document.createElement("h3");
     pregunta.className = "desafio-pregunta";
-    pregunta.textContent = desafio.pregunta;
+    pregunta.textContent = texto;
+    return pregunta;
+  }
+
+  function crearBloquePista(config, fase, desafio) {
+    var contenedor = document.createElement("div");
+    contenedor.className = "desafio-pista";
+    contenedor.hidden = true;
+    var texto = document.createElement("p");
+    contenedor.appendChild(texto);
+
+    var boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "boton-enlace";
+    boton.textContent = window.Pistas.utilizada(config.estado, fase.id, desafio.id)
+      ? "Volver a leer la pista"
+      : "Pedir una pista (−" + window.Puntaje.PENALIZACION_PISTA + " pts)";
+    boton.addEventListener("click", function () {
+      texto.textContent = window.Pistas.tomar(config.estado, fase.id, desafio);
+      contenedor.hidden = false;
+      config.alUsarPista();
+    });
+
+    return { contenedor: contenedor, boton: boton };
+  }
+
+  function crearRetroalimentacion() {
+    var retro = document.createElement("div");
+    retro.className = "desafio-retroalimentacion";
+    retro.hidden = true;
+    return retro;
+  }
+
+  registrarTipo("opcion_multiple", function (contenedor, fase, desafio, indice, total, config) {
+    contenedor.textContent = "";
+
+    var tarjeta = document.createElement("article");
+    tarjeta.className = "desafio";
+
+    var cabecera = crearCabecera(fase, indice, total, desafio.concepto);
+    var pregunta = crearPregunta(desafio.pregunta);
 
     var opcionesContenedor = document.createElement("div");
     opcionesContenedor.className = "desafio-opciones";
@@ -107,35 +145,182 @@
       })(i, desafio.opciones[i]);
     }
 
-    var pistaContenedor = document.createElement("div");
-    pistaContenedor.className = "desafio-pista";
-    pistaContenedor.hidden = true;
-    var pistaTexto = document.createElement("p");
-    pistaContenedor.appendChild(pistaTexto);
-
-    var botonPista = document.createElement("button");
-    botonPista.type = "button";
-    botonPista.className = "boton-enlace";
-    botonPista.textContent = window.Pistas.utilizada(config.estado, fase.id, desafio.id)
-      ? "Volver a leer la pista"
-      : "Pedir una pista (−" + window.Puntaje.PENALIZACION_PISTA + " pts)";
-    botonPista.addEventListener("click", function () {
-      pistaTexto.textContent = window.Pistas.tomar(config.estado, fase.id, desafio);
-      pistaContenedor.hidden = false;
-      config.alUsarPista();
-    });
-
-    var retroalimentacion = document.createElement("div");
-    retroalimentacion.className = "desafio-retroalimentacion";
-    retroalimentacion.hidden = true;
-
+    var pista = crearBloquePista(config, fase, desafio);
+    var retroalimentacion = crearRetroalimentacion();
     var configLibro = { resuelto: false };
 
     tarjeta.appendChild(cabecera);
     tarjeta.appendChild(pregunta);
     tarjeta.appendChild(opcionesContenedor);
-    tarjeta.appendChild(pistaContenedor);
-    tarjeta.appendChild(botonPista);
+    tarjeta.appendChild(pista.contenedor);
+    tarjeta.appendChild(pista.boton);
+    tarjeta.appendChild(retroalimentacion);
+    contenedor.appendChild(tarjeta);
+  });
+
+  registrarTipo("reconstruccion", function (contenedor, fase, desafio, indice, total, config) {
+    contenedor.textContent = "";
+
+    var datos = desafio.datos;
+    var nodos = datos.nodos || [];
+
+    var tarjeta = document.createElement("article");
+    tarjeta.className = "desafio";
+
+    var cabecera = crearCabecera(fase, indice, total, desafio.concepto);
+    var pregunta = crearPregunta(desafio.pregunta);
+
+    var diagrama = document.createElement("div");
+    diagrama.className = "red-diagrama";
+
+    var pisoTitulo = document.createElement("p");
+    pisoTitulo.className = "red-piso-titulo";
+    pisoTitulo.textContent = "Placas disponibles";
+    diagrama.appendChild(pisoTitulo);
+
+    var piso = document.createElement("div");
+    piso.className = "red-piso";
+    var chips = [];
+
+    for (var c = 0; c < datos.opciones.length; c++) {
+      (function (texto) {
+        var chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "red-chip";
+        chip.textContent = texto;
+        chip.addEventListener("click", function () {
+          if (configLibro.resuelto) {
+            return;
+          }
+          if (armado === chip) {
+            armado.classList.remove("activo");
+            armado = null;
+            return;
+          }
+          if (armado) {
+            armado.classList.remove("activo");
+          }
+          armado = chip;
+          armado.classList.add("activo");
+        });
+        chips.push(chip);
+        piso.appendChild(chip);
+      })(datos.opciones[c]);
+    }
+    diagrama.appendChild(piso);
+
+    var armado = null;
+    var asignados = {};
+    var configLibro = { resuelto: false };
+
+    var zonas = datos.zonas || [];
+    var paresNodo = [];
+
+    function actualizarEstadoVerificar() {
+      var completado = Object.keys(asignados).length === nodos.length;
+      verificar.disabled = !completado;
+    }
+
+    for (var z = 0; z < zonas.length; z++) {
+      (function (zona) {
+        var capaZona = document.createElement("div");
+        capaZona.className = "red-zona";
+
+        var tituloZona = document.createElement("p");
+        tituloZona.className = "red-zona-titulo";
+        tituloZona.textContent = zona.titulo;
+        capaZona.appendChild(tituloZona);
+
+        var fila = document.createElement("div");
+        fila.className = "red-nodos";
+
+        for (var n = 0; n < nodos.length; n++) {
+          if (nodos[n].zona !== zona.id) {
+            continue;
+          }
+          (function (nododato) {
+            var botonNodo = document.createElement("button");
+            botonNodo.type = "button";
+            botonNodo.className = "nodo";
+            botonNodo.textContent = "?";
+            botonNodo.setAttribute("aria-label", "Espacio de red " + nododato.id);
+            botonNodo.addEventListener("click", function () {
+              if (configLibro.resuelto) {
+                return;
+              }
+              botonNodo.classList.remove("correcta");
+              botonNodo.classList.remove("incorrecta");
+              if (armado) {
+                asignados[nododato.id] = armado.textContent;
+                botonNodo.textContent = armado.textContent;
+                botonNodo.classList.add("asignado");
+                armado.classList.remove("activo");
+                armado = null;
+              } else {
+                delete asignados[nododato.id];
+                botonNodo.textContent = "?";
+                botonNodo.classList.remove("asignado");
+              }
+              actualizarEstadoVerificar();
+            });
+            paresNodo.push({ nodo: nododato, boton: botonNodo });
+            fila.appendChild(botonNodo);
+          })(nodos[n]);
+        }
+
+        capaZona.appendChild(fila);
+        diagrama.appendChild(capaZona);
+      })(zonas[z]);
+    }
+
+    var verificar = document.createElement("button");
+    verificar.type = "button";
+    verificar.className = "boton boton-verificar";
+    verificar.textContent = "Verificar reconstrucción";
+    verificar.disabled = true;
+    verificar.addEventListener("click", function () {
+      if (configLibro.resuelto) {
+        return;
+      }
+      if (Object.keys(asignados).length !== nodos.length) {
+        return;
+      }
+      var todasCorrectas = true;
+      for (var i = 0; i < paresNodo.length; i++) {
+        var par = paresNodo[i];
+        if (asignados[par.nodo.id] === par.nodo.etiquetaCorrecta) {
+          par.boton.classList.add("correcta");
+        } else {
+          par.boton.classList.add("incorrecta");
+          todasCorrectas = false;
+        }
+      }
+      retroalimentacion.hidden = false;
+      if (todasCorrectas) {
+        configLibro.resuelto = true;
+        for (var j = 0; j < chips.length; j++) {
+          chips[j].disabled = true;
+        }
+        verificar.disabled = true;
+        retroalimentacion.className = "desafio-retroalimentacion exito";
+        retroalimentacion.textContent = "Correcto. " + desafio.explicacion;
+        config.alResponderCorrectamente();
+      } else {
+        retroalimentacion.className = "desafio-retroalimentacion error";
+        retroalimentacion.textContent = "Todavía no está listo. Revisá los equipos marcados en rojo.";
+        config.alResponderIncorrectamente();
+      }
+    });
+    diagrama.appendChild(verificar);
+
+    var pista = crearBloquePista(config, fase, desafio);
+    var retroalimentacion = crearRetroalimentacion();
+
+    tarjeta.appendChild(cabecera);
+    tarjeta.appendChild(pregunta);
+    tarjeta.appendChild(diagrama);
+    tarjeta.appendChild(pista.contenedor);
+    tarjeta.appendChild(pista.boton);
     tarjeta.appendChild(retroalimentacion);
     contenedor.appendChild(tarjeta);
   });

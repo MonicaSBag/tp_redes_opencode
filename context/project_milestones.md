@@ -6,7 +6,7 @@ Desarrollar un juego educativo de redes informaticas, web y sin backend, donde e
 
 ## Estado actual
 
-**Fase actual:** Hito 1 completado (core del motor jugable). Contenido de fase 1 parcial (demo). Siguiente: Hito 2 (contenido completo de la Fase 1 y diagrama interactivo).
+**Fase actual:** Hito 2 completado (Fase 1 con contenido completo, diagrama interactivo y cierre narrativo). Siguiente: Hito 3 (contenido completo de la Fase 2 y panel de evidencias).
 
 ## Seguimiento de tareas
 
@@ -24,14 +24,14 @@ Desarrollar un juego educativo de redes informaticas, web y sin backend, donde e
 - [x] T-07 `motor.js` + `escena-juego.js`: motor reutilizable con registro de "tipos" de desafio; implementado `opcion_multiple`.
 - [x] T-08 `data/contenido.js`: arquitectura de contenido (fases, orden, titulo, desafios). Contenido completo pendiente en Hitos 2-4.
 
-### Hito 2 - Fase 1: La escena del crimen (SIGUIENTE)
+### Hito 2 - Fase 1: La escena del crimen
 
-- [ ] T-09 Escribir contenido completo de Fase 1 (Hub, Switch, Router, Gateway, VLAN, LAN/WAN, topologias). Hay 4 desafios demo.
-- [ ] T-10 Diagrama interactivo de reconstruccion de la red (ubicar dispositivos/conexiones).
-- [ ] T-11 Desafios de identificacion de dispositivos y segmentos.
-- [ ] T-12 Cierre narrativo de la fase (descubrir redes y segmentos).
+- [x] T-09 Escribir contenido completo de Fase 1 (Hub, Switch, Router, Gateway, VLAN, LAN/WAN, topologias). 10 desafios (f1-01..f1-10).
+- [x] T-10 Diagrama interactivo de reconstruccion de la red (tipo `reconstruccion` registrado en el motor: zonas, nodos y placas).
+- [x] T-11 Desafios de identificacion de dispositivos y segmentos (f1-05 Router, f1-06 Gateway, f1-07 LAN/WAN, f1-09 VLAN/segmentos).
+- [x] T-12 Cierre narrativo de la fase (pantalla "cierre" con la pieza y conceptos dominados, camino hacia el informe).
 
-### Hito 3 - Fase 2: Siguiendo las pistas
+### Hito 3 - Fase 2: Siguiendo las pistas (SIGUIENTE)
 
 - [ ] T-13 Contenido Fase 2 (TCP/IP, Flags, DHCP, DNS, ARP, NetBIOS, OSI). Hay 1 demo.
 - [ ] T-14 Panel de evidencias (logs, config, resultados de pruebas).
@@ -69,5 +69,6 @@ Desarrollar un juego educativo de redes informaticas, web y sin backend, donde e
 
 ## Notas
 
-- El contenido demo actual (6 desafios) permite probar el flujo completo de una fase.
+- El flujo completo actual: menu → fase 1 (10 desafios, 1 interactivo) → cierre de fase (pieza + conceptos) → informe. Probado con el test de integracion `node tests/test-flujo.js`.
+- Las fases 2 y 3 conservan 1 desafio demo cada una; su contenido completo corresponde a Hitos 3 y 4.
 - Los tests de integracion se ejecutan con Node contra stubs de DOM (ver `CONTEXT.md`).

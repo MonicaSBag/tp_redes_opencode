@@ -14,6 +14,7 @@
   function iniciar() {
     window.GestorEscenas.registrar("menu", "#pantalla-menu");
     window.GestorEscenas.registrar("juego", "#pantalla-juego");
+    window.GestorEscenas.registrar("cierre", "#pantalla-cierre");
     window.GestorEscenas.registrar("informe", "#pantalla-informe");
     configurarBotones();
     window.Menu.inicializar();

@@ -13,6 +13,7 @@ function makeElement(tag) {
     disabled: false,
     className: "",
     type: "button",
+    _attrs: {},
     listeners: {},
     classList: {
       _set: {},
@@ -20,6 +21,8 @@ function makeElement(tag) {
       remove(n) { delete this._set[n]; },
       contains(n) { return Boolean(this._set[n]); },
     },
+    setAttribute(k, v) { this._attrs[k] = String(v); },
+    getAttribute(k) { return this._attrs[k]; },
     appendChild(child) { this.children.push(child); return child; },
     addEventListener(t, fn) { this.listeners[t] = fn; },
   };
@@ -65,6 +68,7 @@ cargar("js/progreso.js");
 cargar("js/pistas.js");
 cargar("js/motor.js");
 cargar("js/escena-juego.js");
+cargar("js/escena-cierre.js");
 cargar("js/escena-informe.js");
 cargar("js/menu.js");
 cargar("js/main.js");
@@ -82,7 +86,7 @@ const Menu = J.window.Menu;
 const EscenaJuego = J.window.EscenaJuego;
 
 assert.strictEqual(CONTENIDO.fases.length, 3, "tres fases");
-assert.strictEqual(Motor.totalDesafios(Motor.obtenerFase("fase1")), 4, "fase1 con 4 desafios");
+assert.strictEqual(Motor.totalDesafios(Motor.obtenerFase("fase1")), 10, "fase1 con 10 desafios");
 
 assert.strictEqual(Puntaje.puntosPorDesafio(true), 100, "sin pista = 100pts");
 assert.strictEqual(Puntaje.puntosPorDesafio(false), 75, "con pista = 75pts");
@@ -101,26 +105,61 @@ assert.strictEqual(elements["boton-continuar"].disabled, true, "sin juego no se 
 EscenaJuego.iniciarInvestigacion();
 assert.strictEqual(Progreso.cargar().faseActual, "fase1", "comienza la fase 1");
 
-function resolverActivos() {
-  const contenedor = elements["contenedor-desafio"];
-  const tarjeta = contenedor.children[0];
-  const opciones = tarjeta.children[2];
-  return opciones.children;
+function recolectar(clase, desde, acumulador) {
+  acumulador = acumulador || [];
+  if (!desde) return acumulador;
+  if (typeof desde.className === "string" && desde.className.split(/\s+/).indexOf(clase) !== -1) {
+    acumulador.push(desde);
+  }
+  (desde.children || []).forEach((hijo) => recolectar(clase, hijo, acumulador));
+  return acumulador;
 }
 
 const fase1 = Motor.obtenerFase("fase1");
 for (let i = 0; i < fase1.desafios.length; i++) {
-  const botones = resolverActivos();
-  const correcto = fase1.desafios[i].respuestaCorrecta;
-  botones[correcto].listeners.click();
+  const desafio = fase1.desafios[i];
+  const tarjeta = elements["contenedor-desafio"].children[0];
+
+  if (desafio.tipo === "reconstruccion") {
+    const diagrama = tarjeta.children[2];
+    for (const nododato of desafio.datos.nodos) {
+      const chip = recolectar("red-chip", diagrama).find((ch) => ch.textContent === nododato.etiquetaCorrecta);
+      const nodoBoton = recolectar("nodo", diagrama).find(
+        (nb) => nb.getAttribute("aria-label") === "Espacio de red " + nododato.id
+      );
+      assert.ok(chip, "chip presente para " + nododato.etiquetaCorrecta);
+      assert.ok(nodoBoton, "nodo presente para " + nododato.id);
+      chip.listeners.click();
+      assert.strictEqual(chip.classList.contains("activo"), true, "chip armado");
+      nodoBoton.listeners.click();
+      assert.strictEqual(nodoBoton.textContent, nododato.etiquetaCorrecta, "nodo asignado");
+      assert.strictEqual(chip.classList.contains("activo"), false, "chip se desarma al asignar");
+    }
+    const verificarBoton = recolectar("boton-verificar", diagrama)[0];
+    assert.strictEqual(verificarBoton.disabled, false, "verificar habilitado al completar");
+    verificarBoton.listeners.click();
+  } else {
+    const botones = tarjeta.children[2].children;
+    botones[desafio.respuestaCorrecta].listeners.click();
+  }
+
   assert.strictEqual(elements["boton-siguiente"].hidden, false, "se habilita siguiente tras responder");
   elements["boton-siguiente"].listeners.click();
 }
 
 const progreso = Progreso.cargar();
 assert.deepStrictEqual(progreso.fasesCompletadas, ["fase1"], "fase 1 completada");
-assert.strictEqual(progreso.puntaje, 400, "4 respuestas correctas sin pistas = 400pts");
-assert.strictEqual(progreso.resueltos.length, 4, "4 resueltos");
-assert.strictEqual(GestorEscenas.actual(), "informe", "el flujo termina en el informe");
+assert.strictEqual(progreso.puntaje, 1000, "10 respuestas correctas sin pistas = 1000pts");
+assert.strictEqual(progreso.resueltos.length, 10, "10 desafios resueltos");
+assert.strictEqual(GestorEscenas.actual(), "cierre", "el flujo termina en el cierre de fase");
+assert.strictEqual(elements["cierre-titulo"].textContent, "Fase 1 concluida", "titulo del cierre");
+assert.strictEqual(
+  elements["contenido-cierre"].children[0].children[1].textContent,
+  "Conceptos dominados en esta investigación:",
+  "el cierre lista los conceptos"
+);
+
+elements["boton-cierre-informe"].listeners.click();
+assert.strictEqual(GestorEscenas.actual(), "informe", "desde el cierre se llega al informe");
 
 console.log("TODOS LOS TESTS PASARON");

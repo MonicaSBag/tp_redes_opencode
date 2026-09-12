@@ -28,7 +28,7 @@
     estado.faseActual = null;
     estado.indiceDesafio = 0;
     window.Progreso.guardar(estado);
-    window.EscenaInforme.mostrar(estado);
+    window.EscenaCierre.mostrar(faseActual, estado);
   }
 
   function siguienteDesafio() {

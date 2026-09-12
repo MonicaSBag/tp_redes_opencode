@@ -373,3 +373,137 @@ body {
     align-items: flex-start;
   }
 }
+
+/* ---------- Diagrama de reconstrucción ---------- */
+
+.red-diagrama {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.red-piso-titulo,
+.red-zona-titulo {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.red-piso {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--superficie);
+  border: 1px dashed var(--borde);
+  border-radius: var(--radio);
+}
+
+.red-chip {
+  appearance: none;
+  border: 1px solid var(--borde);
+  background: var(--superficie-2);
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.red-chip:hover {
+  border-color: var(--acento);
+}
+
+.red-chip.activo {
+  border-color: var(--acento);
+  background: rgba(217, 164, 65, 0.18);
+}
+
+.red-chip:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.red-zona {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 0.9rem 1rem;
+}
+
+.red-nodos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.nodo {
+  appearance: none;
+  min-width: 7.2rem;
+  border: 1px solid var(--borde);
+  background: var(--superficie-2);
+  color: var(--texto-suave);
+  font: inherit;
+  font-family: var(--fuente-mono);
+  font-size: 0.85rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.nodo:hover:not(:disabled) {
+  border-color: var(--acento);
+  color: var(--texto);
+}
+
+.nodo.asignado {
+  color: var(--texto);
+}
+
+.nodo.correcta {
+  border-color: var(--exito);
+  color: #c9f2dd;
+  background: var(--exito-fondo);
+}
+
+.nodo.incorrecta {
+  border-color: var(--error);
+  color: #f4d4d3;
+  background: var(--error-fondo);
+}
+
+.boton-verificar {
+  align-self: center;
+}
+
+.boton-verificar:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ---------- Cierre de fase ---------- */
+
+.cierre-narracion {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  margin: 0 0 1.4rem;
+  border-left: 3px solid var(--acento);
+  padding-left: 1rem;
+}
+
+.cierre-cabecera {
+  margin: 0 0 0.75rem;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.conceptos-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
