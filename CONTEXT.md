@@ -21,7 +21,7 @@ openCode/
 ├── README.md                  # Instrucciones de instalacion y uso
 ├── requirements.txt           # Dependencias de Python (solo documentacion)
 ├── .gitignore                 # Excluye .env/, caches, claves
-├── index.html                 # Punto de entrada (4 pantallas: menu, juego, cierre, informe)
+├── index.html                 # Punto de entrada (5 pantallas: menu, intro, juego, cierre, informe)
 ├── css/
 │   └── estilos.css            # Tema "detective" con variables CSS
 ├── js/
@@ -30,11 +30,14 @@ openCode/
 │   ├── puntaje.js             # window.Puntaje - puntos, penalizacion, rango
 │   ├── progreso.js            # window.Progreso - localStorage
 │   ├── pistas.js              # window.Pistas - pistas y penalizacion
+│   ├── errores.js             # window.Errores - logging global de errores
 │   ├── motor.js               # window.Motor - renderizar y validar desafios
+│   ├── logros.js              # window.Logros - logros derivados del estado
+│   ├── escena-intro.js        # window.EscenaIntro - intro narrativa del caso
 │   ├── escena-juego.js        # window.EscenaJuego - flujo de juego
 │   ├── escena-cierre.js       # window.EscenaCierre - cierre narrativo de fase
 │   ├── escena-informe.js      # window.EscenaInforme - informe final
-│   ├── menu.js                # window.Menu - menu principal
+│   ├── menu.js                # window.Menu - menu, expediente y tablero
 │   └── main.js                # Arranque: registra escenas y botones
 ├── data/
 │   └── contenido.js           # window.CONTENIDO (fases, desafios)
@@ -106,3 +109,26 @@ Registro cronologico de los puntos importantes de cada sesion de trabajo. Regla:
 - Establecido como practica: en los archivos versionados NO deben aparecer rutas locales absolutas ni nombres de usuario de la maquina.
 - El test de integracion sigue pasando desde la nueva ubicacion: `node tests/test-flujo.js`.
 - Estado general: mismo que el cierre anterior (flujo completo jugable, T-01 a T-08 completadas, 0 de 3 fases con contenido completo). Proximos pasos sin cambio: Hito 2 (T-09 a T-12) y luego Hitos 3 a 7.
+
+### 2026-09-09 - Usuario: monic - Cierre de sesion (continuacion, Hito 2)
+
+- Se completo el **Hito 2** (T-09 a T-12): contenido completo de la Fase 1 en `data/contenido.js` (f1-01..f1-10) incluyendo el desafio interactivo de reconstruccion de la red (f1-08, tipo `reconstruccion`), implementado en `js/motor.js` con `Motor.registrarTipo` (areas `.red-chip` + nodos `.nodo` con `aria-label="Espacio de red <id>"`, boton verificar, retro inmediata).
+- Se creo `js/escena-cierre.js` (window.EscenaCierre) con la narracion de cierre (`fase.pieza`), badge de conceptos y boton `boton-cierre-avanzar` para pasar a la siguiente fase. Se agrego la seccion `#pantalla-cierre` en `index.html`.
+- CSS nuevo en `estilos.css`: diagrama de red, cierre de fase, estados correcto/incorrecto y mejoras de la tarjeta de desafio.
+- Tests actualizados (`tests/test-flujo.js`): cubren los 10 desafios de la Fase 1 y la reconstruccion de la red; siguen pasando con `node tests/test-flujo.js`.
+- Docs actualizados: `context/project_milestones.md` (Hito 2 completo) y `context/documentacion.md` (tipo `reconstruccion`, `EscenaCierre`, avance entre fases).
+- Estado de avance: 1 de 3 fases con contenido completo. Siguiente paso acordado: Hito 3 (Fase 2 con panel de evidencias, T-13 a T-16).
+
+### 2026-09-12 - Usuario: monic - Cierre de sesion (Hitos 3 a 7)
+
+- Se completo el **Hito 3** (T-13 a T-16): Fase 2 completa (f2-01..f2-10) con el tipo `evidencias` (panel de evidencias falso o correcto en `data/`; `respuestaCorrecta` oculta, comparacion en runtime y respuesta esperada), incluida la deteccion de trafico anomalo (f2-10) que vincula con el incidente final. Cubre TCP/IP, flags, DHCP, DNS, ARP, NetBIOS y Modelo OSI.
+- Flujo entre fases: se implemento el avance (cierre con "Avanzar a la Fase N") con `EscenaJuego.iniciarFase(id)` y `continuarInvestigacion` que reanuda la fase pendiente desde el menú. Solo la ultima fase ofrece "Ver informe de investigación".
+- Se completo el **Hito 4** (T-17 a T-19): Fase 3 completa (f3-01..f3-10) de Firewall, DMZ, VPN, routing OSPF, Spanning Tree, enlaces (fibra), Wireless, analisis del punto vulnerable (f3-08: regla 3389 + log de acceso) y contencion (f3-09). Nuevo tipo `contencion` en `motor.js`: seleccion multiple de medidas `.medida`/`.seleccionada` con marca, validacion exacta contra `datos.correctas` (nunca expuesto en el DOM ni consola, anti-trampas) y retro.
+- Se completo el **Hito 5** (T-20 a T-22): `escena-informe.js` reescrito con metricas (fases resueltas, correctas, pistas usadas, puntaje y rango con nivel), desglose por fase (estado, avance, conceptos dominados) y bloque de logros.
+- Se completo el **Hito 6** (T-23 a T-28): escena `intro` con narrativa del caso NEXUS (`js/escena-intro.js`; "Nueva investigación" la abre desde el menú); expediente/tablero de avance en el menú (`#expediente`) con guia de conceptos por fase; `js/logros.js` con 7 logros derivados de las estadisticas (no se persisten aparte); responsive (media query base + ajuste de evidencias).
+- Se completo el **Hito 7** (T-29 a T-33): `js/errores.js` con manejador global `error`/`unhandledrejection` y barra de aviso amigable; accesibilidad basica (`:focus-visible`, `aria-live` en areas dinamicas, `prefers-reduced-motion`); cabeceras de documentacion en todos los modulos; `README.md` actualizado con estructura/comandos/pruebas; anti-trampas verificado (grep sin `innerHTML` con datos ni respuestas expuestas).
+- `main.js` registra ahora 5 escenas (menu, intro, juego, cierre, informe) y llama `Errores.activar()`. `index.html` agrego `#pantalla-intro`, `#expediente` y los scripts de errores, logros y escena-intro manteniendo el orden de carga.
+- Tests actualizados a 30 desafios (10x3); el test recorre el juego completo (menu → intro → fase 1 → fase 2 → fase 3 → informe) verificando contencion, logros (7/7), informe y handler de errores. Se amplio el stub de DOM con `classList.toggle`, `window.addEventListener` y `document.body`. `node tests/test-flujo.js` pasa y `node --check` no reporta errores. (Nota de depuracion: la asercion de logros se verifica sobre tokens de `className` porque el stub mantiene `className` y `classList` desincronizados, a diferencia del navegador real.)
+- Docs al dia: `context/project_milestones.md` (Hitos 3 a 7 completados, 33/33 tareas), `context/documentacion.md` (tipo `contencion`, APIs de `Logros`/`EscenaIntro`/`Errores`, escena intro, flujo), `CONTEXT.md` (arbol con los nuevos `js/`, 5 pantallas) y `README.md`.
+- Estado general: juego completo y jugable de principio a fin (30 desafios, 3 fases, informe con logros), validado por el test de integracion. Cambios sin commitear (no se pidio commit).
+- Proximos pasos sugeridos: tester manual/auditoria visual y WCAG AA con usuario real, pulido de UX, y decidir si se commitea al repositorio remoto de GitHub.

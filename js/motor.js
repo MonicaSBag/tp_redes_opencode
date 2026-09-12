@@ -1,6 +1,7 @@
 (function () {
   "use strict";
 
+  // Motor de desafios: obtiene fases/desafios del contenido y renderiza por tipo registrado.
   var tipos = {};
 
   function obtenerFase(id) {
@@ -244,6 +245,122 @@
     tarjeta.appendChild(pregunta);
     tarjeta.appendChild(bloqueEvidencias);
     tarjeta.appendChild(opcionesContenedor);
+    tarjeta.appendChild(pista.contenedor);
+    tarjeta.appendChild(pista.boton);
+    tarjeta.appendChild(retroalimentacion);
+    contenedor.appendChild(tarjeta);
+  });
+
+  registrarTipo("contencion", function (contenedor, fase, desafio, indice, total, config) {
+    contenedor.textContent = "";
+
+    var datos = desafio.datos;
+    var medidas = (datos && datos.medidas) || [];
+    var indiceCorrectas = (datos && datos.correctas) || [];
+
+    var tarjeta = document.createElement("article");
+    tarjeta.className = "desafio";
+
+    var cabecera = crearCabecera(fase, indice, total, desafio.concepto);
+    var pregunta = crearPregunta(desafio.pregunta);
+
+    var listaMedidas = document.createElement("div");
+    listaMedidas.className = "medidas";
+    var toggles = [];
+
+    for (var m = 0; m < medidas.length; m++) {
+      (function (indiceMedida, texto) {
+        var botonMedida = document.createElement("button");
+        botonMedida.type = "button";
+        botonMedida.className = "medida";
+        var estadoBoton = document.createElement("span");
+        estadoBoton.className = "medida-marca";
+        estadoBoton.setAttribute("aria-hidden", "true");
+        botonMedida.appendChild(estadoBoton);
+
+        var etiqueta = document.createElement("span");
+        etiqueta.className = "medida-texto";
+        etiqueta.textContent = texto;
+        botonMedida.appendChild(etiqueta);
+
+        botonMedida.addEventListener("click", function () {
+          if (configLibro.resuelto) {
+            return;
+          }
+          botonMedida.classList.toggle("seleccionada");
+          var seleccionadas = 0;
+          for (var i = 0; i < toggles.length; i++) {
+            if (toggles[i].classList.contains("seleccionada")) {
+              seleccionadas += 1;
+            }
+          }
+          verificar.disabled = seleccionadas === 0;
+        });
+
+        toggles.push(botonMedida);
+        listaMedidas.appendChild(botonMedida);
+      })(m, medidas[m]);
+    }
+
+    var verificar = document.createElement("button");
+    verificar.type = "button";
+    verificar.className = "boton boton-verificar";
+    verificar.textContent = "Verificar plan de contención";
+    verificar.disabled = true;
+    verificar.addEventListener("click", function () {
+      if (configLibro.resuelto) {
+        return;
+      }
+      var elegidas = [];
+      for (var i = 0; i < toggles.length; i++) {
+        if (toggles[i].classList.contains("seleccionada")) {
+          elegidas.push(i);
+        }
+      }
+      if (elegidas.length === 0) {
+        return;
+      }
+
+      var acierto = true;
+      if (elegidas.length !== indiceCorrectas.length) {
+        acierto = false;
+      } else {
+        for (var j = 0; j < elegidas.length; j++) {
+          if (indiceCorrectas.indexOf(elegidas[j]) === -1) {
+            acierto = false;
+            break;
+          }
+        }
+      }
+
+      retroalimentacion.hidden = false;
+      if (acierto) {
+        configLibro.resuelto = true;
+        for (var k = 0; k < toggles.length; k++) {
+          toggles[k].disabled = true;
+          if (indiceCorrectas.indexOf(k) !== -1) {
+            toggles[k].classList.add("correcta");
+          }
+        }
+        verificar.disabled = true;
+        retroalimentacion.className = "desafio-retroalimentacion exito";
+        retroalimentacion.textContent = "Correcto. " + desafio.explicacion;
+        config.alResponderCorrectamente();
+      } else {
+        retroalimentacion.className = "desafio-retroalimentacion error";
+        retroalimentacion.textContent = "El plan no está completo. Releé las evidencias y ajustá las medidas marcadas.";
+        config.alResponderIncorrectamente();
+      }
+    });
+
+    var pista = crearBloquePista(config, fase, desafio);
+    var retroalimentacion = crearRetroalimentacion();
+    var configLibro = { resuelto: false };
+
+    tarjeta.appendChild(cabecera);
+    tarjeta.appendChild(pregunta);
+    tarjeta.appendChild(listaMedidas);
+    tarjeta.appendChild(verificar);
     tarjeta.appendChild(pista.contenedor);
     tarjeta.appendChild(pista.boton);
     tarjeta.appendChild(retroalimentacion);

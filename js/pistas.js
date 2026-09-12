@@ -1,6 +1,7 @@
 (function () {
   "use strict";
 
+  // Pistas: marcan uso por desafio y penalizan el puntaje (via Puntaje).
   function claveDePista(faseId, desafioId) {
     return faseId + ":" + desafioId;
   }

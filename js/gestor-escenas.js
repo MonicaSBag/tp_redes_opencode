@@ -1,6 +1,7 @@
 (function () {
   "use strict";
 
+  // Gestor de escenas: registra secciones .escena y navega entre ellas (.activa).
   var pantallas = {};
   var actual = null;
 

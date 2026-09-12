@@ -1,6 +1,7 @@
 (function () {
   "use strict";
 
+  // Progreso: guardado y reanudacion de la partida en localStorage.
   var CLAVE = "detective-redes:progreso";
 
   function estadoPorDefecto() {

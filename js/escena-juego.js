@@ -1,6 +1,7 @@
 (function () {
   "use strict";
 
+  // Escena de juego: flujo de desafios, puntaje, pistas y avance de fases.
   var estado = null;
   var faseActual = null;
 

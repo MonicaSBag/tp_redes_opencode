@@ -372,6 +372,10 @@ body {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .evidencia-detalle {
+    font-size: 0.72rem;
+  }
 }
 
 /* ---------- Panel de evidencias ---------- */
@@ -541,4 +545,247 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
+}
+
+/* ---------- Contención (selección de medidas) ---------- */
+
+.medidas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.medida {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  text-align: left;
+  font-family: var(--fuente-ui);
+  font-size: 0.95rem;
+  color: var(--texto);
+  background: var(--superficie-2);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.medida:hover:not(:disabled) {
+  border-color: var(--acento);
+  background: #222c39;
+}
+
+.medida.seleccionada {
+  border-color: var(--acento);
+  background: rgba(217, 164, 65, 0.14);
+}
+
+.medida.correcta {
+  border-color: var(--exito);
+  background: var(--exito-fondo);
+  color: #c9f2dd;
+}
+
+.medida:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.medida-marca {
+  flex: 0 0 1.1rem;
+  height: 1.1rem;
+  border: 1px solid var(--borde);
+  border-radius: 4px;
+  margin-top: 0.1rem;
+}
+
+.medida.seleccionada .medida-marca {
+  border-color: var(--acento);
+  background: var(--acento);
+}
+
+.medida.correcta .medida-marca {
+  border-color: var(--exito);
+  background: var(--exito);
+}
+
+.medida-texto {
+  line-height: 1.45;
+}
+
+/* ---------- Menú: expediente y tablero ---------- */
+
+.expediente {
+  margin-top: 2rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.expediente-titulo {
+  font-family: var(--fuente-display);
+  font-size: 1.15rem;
+  margin: 0 0 0.25rem;
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+.expediente-fase {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 0.9rem 1.1rem;
+}
+
+.expediente-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.35rem;
+}
+
+.expediente-estado {
+  font-family: var(--fuente-mono);
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.expediente-objetivo {
+  margin: 0 0 0.5rem;
+  color: var(--texto);
+  font-size: 0.95rem;
+}
+
+.expediente-guia {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+/* ---------- Intro y logros (informe) ---------- */
+
+.intro-texto {
+  display: grid;
+  gap: 1rem;
+}
+
+.intro-parrafo {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.informe-seccion {
+  font-family: var(--fuente-display);
+  font-size: 1.2rem;
+  margin: 1.75rem 0 0.9rem;
+}
+
+.fases-resumen {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.fase-resumen {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 0.9rem 1.1rem;
+}
+
+.fase-resumen-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.35rem;
+}
+
+.fase-resumen-estado {
+  font-family: var(--fuente-mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--exito);
+}
+
+.fase-resumen-avance {
+  margin: 0 0 0.6rem;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.logros-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.logro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.92rem;
+}
+
+.logro small {
+  color: var(--texto-suave);
+}
+
+.logro-marca {
+  font-family: var(--fuente-mono);
+  color: var(--texto-suave);
+}
+
+.logro-obtenido {
+  border-color: var(--exito);
+  background: var(--exito-fondo);
+}
+
+.logro-obtenido .logro-marca {
+  color: var(--exito);
+}
+
+.logro-obtenido small {
+  color: #c9f2dd;
+}
+
+/* ---------- Errores y accesibilidad ---------- */
+
+.barra-errores {
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 50;
+  background: var(--error-fondo);
+  border: 1px solid var(--error);
+  color: #f4d4d3;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  box-shadow: var(--sombra);
+  font-size: 0.9rem;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .escena.activa {
+    animation: none;
+  }
 }

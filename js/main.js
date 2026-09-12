@@ -1,6 +1,7 @@
 (function () {
   "use strict";
 
+  // Arranque: registra escenas, activa el manejo de errores y levanta el menu.
   function configurarBotones() {
     document.getElementById("boton-reiniciar").addEventListener("click", function () {
       window.EscenaJuego.iniciarInvestigacion();
@@ -12,7 +13,9 @@
   }
 
   function iniciar() {
+    window.Errores.activar();
     window.GestorEscenas.registrar("menu", "#pantalla-menu");
+    window.GestorEscenas.registrar("intro", "#pantalla-intro");
     window.GestorEscenas.registrar("juego", "#pantalla-juego");
     window.GestorEscenas.registrar("cierre", "#pantalla-cierre");
     window.GestorEscenas.registrar("informe", "#pantalla-informe");

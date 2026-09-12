@@ -11,12 +11,57 @@ La documentación completa está en la carpeta `Documentacion/` junto con el doc
 ## Estructura del proyecto
 
 ```
-openCode/
+Detective de Redes/
+├── CONTEXT.md                  # Contexto y bitácora de sesiones para agentes de IA
+├── index.html                  # Punto de entrada (perfiles: menu, intro, juego, cierre, informe)
+├── css/
+│   └── estilos.css             # Tema "detective" con variables CSS y componentes
+├── js/
+│   ├── contenido.js            # Contenido educativo (window.CONTENIDO)
+│   ├── gestor-escenas.js       # (data/) Navegacion entre pantallas
+│   ├── puntaje.js              # Puntos, penalizacion por pista y rangos
+│   ├── progreso.js             # Guardado en localStorage
+│   ├── pistas.js               # Pistas por desafio
+│   ├── errores.js              # Manejo global de errores
+│   ├── motor.js                # Motor: renderizado y validacion de desafios
+│   ├── logros.js               # Logros derivados de las estadisticas
+│   ├── escena-intro.js         # Intro narrativa del caso NEXUS
+│   ├── escena-juego.js         # Flujo de juego y avance de fases
+│   ├── escena-cierre.js        # Cierre narrativo de fase
+│   ├── escena-informe.js       # Informe final
+│   ├── menu.js                 # Menu, expediente y tablero de avance
+│   └── main.js                 # Arranque
+├── data/
+│   └── contenido.js            # Fases, desafios y evidencias
+├── tests/
+│   └── test-flujo.js           # Test de integracion con DOM simulado (Node)
 ├── Documentacion/
-│   ├── Detective de Redes.docx            # Diseño original del juego
-│   └── Requisitos - Detective de Redes.md  # Requisitos funcionales y técnicos
-├── requirements.txt                       # Dependencias de Python
-└── README.md                              # Este archivo
+│   ├── Detective de Redes.docx
+│   ├── Requisitos - Detective de Redes.md
+│   └── Plan de desarrollo - Detective de Redes.md
+├── context/                    # Documentacion para agentes de IA
+├── requirements.txt
+└── README.md
+```
+
+## Ejecutar el juego
+
+No hay compilación. Para desarrollarlo, levantá un servidor local y abrí `http://localhost:8000`:
+
+```bash
+python -m http.server 8000
+```
+
+(También funciona abriendo `index.html` con doble clic en la mayoría de los navegadores.)
+
+## Probar el código
+
+```bash
+# Sintaxis de todos los JavaScript (requiere Node):
+for f in data/contenido.js js/*.js; do node --check "$f"; done
+
+# Test de integracion del flujo completo (menu -> intro -> 3 fases -> informe):
+node tests/test-flujo.js
 ```
 
 ## Requisitos previos

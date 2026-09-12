@@ -1,6 +1,7 @@
 (function () {
   "use strict";
 
+  // Cierre de fase: narracion + conceptos; avanza a la siguiente fase o al informe.
   var datosCierre = null;
 
   function proximaFase(fase) {

@@ -11,9 +11,10 @@ Notas de arquitectura y especificaciones para agentes de IA y editores inteligen
 | Referencias cruzadas via `window` | Los modulos usan `window.NombreModulo` para referenciarse. No usar `import`/`export`. |
 | Contenido como objeto JS | `data/contenido.js` define `window.CONTENIDO` (objeto, no JSON fetch) para no depender de servidor local. |
 | Guardado | `localStorage` con clave `detective-redes:progreso`. |
-| Escenas | Secciones `.escena`; la activa lleva la clase `.activa` (ver `gestor-escenas.js`). Escenas: `menu`, `juego`, `cierre`, `informe`. |
-| Extraible por tipos | El motor registra "tipos" de desafio (`Motor.registrarTipo`). Implementados `opcion_multiple`, `evidencias` y `reconstruccion`; se pueden agregar tipos nuevos. |
+| Escenas | Secciones `.escena`; la activa lleva la clase `.activa` (ver `gestor-escenas.js`). Escenas: `menu`, `intro`, `juego`, `cierre`, `informe`. |
+| Extraible por tipos | El motor registra "tipos" de desafio (`Motor.registrarTipo`). Implementados `opcion_multiple`, `evidencias`, `reconstruccion` y `contencion`; se pueden agregar tipos nuevos. |
 | Avance entre fases | Al terminar una fase, el cierre ofrece avanzar a la siguiente; solo en la ultima ofrece el informe final. |
+| Guardado de clientes extras | Los logros se derivan de las estadisticas guardadas (`js/logros.js`); no se persisten por separado. Errores globales en `js/errores.js`. |
 | Anti-trampas | Las respuestas no se revelan hasta resolver; no se imprimen en consola. Sin esto se fuerza localStorage, aceptado en alcance. |
 
 ## Esquema de localStorage (clave `detective-redes:progreso`)
@@ -88,6 +89,30 @@ Variante de `opcion_multiple` que antepone paneles de evidencia en formato lectu
 - `detalle` admite saltos de linea (`\n`); se inyecta con `textContent` (nunca `innerHTML` con datos).
 - Anti-trampas: `respuestaCorrecta` nunca va al DOM; se compara en runtime.
 
+### Esquema del tipo `contencion` (T-19)
+
+Escenario de contención: se eligen las medidas correctas de una lista (seleccion múltiple) y se verifica. `tipo: "contencion"`, con `datos`:
+
+```js
+{
+  id: "f3-09",
+  tipo: "contencion",
+  concepto: "Contención",
+  pregunta: "...",
+  pista: "...",
+  explicacion: "...",
+  datos: {
+    medidas: ["Desconectar el equipo comprometido", "Cerrar el puerto 3389", "...", "Apagar el firewall (incorrecta)", "..."],
+    correctas: [0, 1, 2]        // indices de las medidas que hay que marcar
+  }
+}
+```
+
+- DOM del tipo (orden de `tarjeta.children`): `[0]` cabecera, `[1]` pregunta, `[2]` lista `div.medidas` (botones `button.medida` con marca `.medida-marca` y texto `.medida-texto`), `[3]` boton `button.boton-verificar`, `[4]` pista, `[5]` boton pista, `[6]` retro.
+- Interaccion: tocar una medida la marca (clase `.seleccionada`); se pueden marcar varias; `Verificar` se habilita con al menos una marcada.
+- Validacion: la seleccion debe coincidir exactamente con `correctas`. Al acertar, las medidas correctas se marcan `.correcta` y se bloquean; al fallar se puede reintentar.
+- Anti-trampas: `correctas` nunca va al DOM; se compara en runtime.
+
 ### Esquema del tipo `reconstruccion` (T-10)
 
 Desafio interactivo de diagrama: se arma un "mapa" ubicando placas en nodos por zona y se verifica. `tipo: "reconstruccion"`, con `datos`:
@@ -161,13 +186,25 @@ Desafio interactivo de diagrama: se arma un "mapa" ubicando placas en nodos por 
 - Decide el boton `boton-cierre-avanzar`: si existe una fase siguiente muestra "Avanzar a la Fase N: <titulo>" y llama `window.EscenaJuego.iniciarFase(siguiente.id)`; en la ultima fase muestra "Ver informe de investigación" y llama `window.EscenaInforme.mostrar(estado)`.
 - Los estilos de cierre viven en `css/estilos.css` (`.cierre-narracion`, `.cierre-cabecera`, `.conceptos-wrap`).
 
+### window.EscenaIntro (T-23)
+- `mostrar()` - renderiza la narrativa del caso NEXUS en `#texto-intro` y navega a la escena `intro`.
+- El boton `boton-intro-comenzar` inicia la investigacion (`window.EscenaJuego.iniciarInvestigacion()`).
+
+### window.Logros (T-27)
+- `listar(estado)` -> array de `{ id, nombre, descripcion, desbloqueado }` (7 logros) derivado de las estadisticas del estado (resueltos, pistas, fases completadas, puntaje). No se persisten aparte.
+
+### window.Errores (T-32)
+- `activar()` - instala `window.addEventListener("error")` y `("unhandledrejection")`; loguea en consola con prefijo y muestra una barra `#barra-errores` con aviso amigable (role="alert").
+
 ### window.EscenaInforme
 - `mostrar(estado)` - renderiza metricas y rango, y navega a la escena "informe".
 
 ### window.Menu
-- `inicializar()` - actualiza estado de botones (Nueva/Continuar) y linea de progreso.
+- `inicializar()` - actualiza estado de botones (Nueva/Continuar), la linea de progreso y dibuja el expediente (`#expediente`): tablero de avance por fase (T-24) y guia de conceptos (T-26).
+- `boton-nueva-investigacion` abre la intro (T-23); `boton-continuar` reanuda.
 
 ## Ventajas pendientes (roadmap)
 
 - No hay endpoints de API: al no haber backend, esta seccion no aplica. Si en el futuro se agrega servidor, documentar rutas aqui.
-- Se implementaron hasta ahora como tipos: `opcion_multiple`, `evidencias` (T-14/T-15) y `reconstruccion` (T-10); el diagrama interactivo de Fase 1 es el caso de `reconstruccion`. El escenario de decision de contencion (T-19) se sumara como tipo nuevo via `Motor.registrarTipo`.
+- Auditoria WCAG AA con tester real y pulido visual (Hito 7 parcial: enfoque, aria-live y reduced-motion ya aplicados).
+- Los tipos de desafio implementados: `opcion_multiple`, `evidencias`, `reconstruccion` y `contencion`. Futuros formatos se sumaran via `Motor.registrarTipo`.

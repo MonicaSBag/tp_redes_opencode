@@ -1,6 +1,7 @@
 (function () {
   "use strict";
 
+  // Puntaje: puntos por desafio, penalizacion por pista y rangos de detective.
   var PUNTOS_BASE = 100;
   var PENALIZACION_PISTA = 25;
   var PUNTOS_MINIMOS = 10;

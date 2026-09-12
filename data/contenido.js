@@ -1,3 +1,5 @@
+// Contenido educativo del juego: fases, desafios y evidencias (window.CONTENIDO).
+// Se puede editar sin tocar la logica; los tipos de desafio los resuelve js/motor.js.
 window.CONTENIDO = {
   version: 3,
   fases: [
@@ -332,17 +334,185 @@ window.CONTENIDO = {
       orden: 3,
       titulo: "El ataque",
       conceptoGeneral: "Origen y contención",
-      pieza: "Identificaste el origen del incidente, el punto vulnerable de la infraestructura y las medidas necesarias para contenerlo y recuperar el control.",
+      pieza: "El origen quedó al descubierto: un equipo interno con el escritorio remoto (RDP) expuesto y credenciales débiles, alcanzable por una regla del firewall. Con los parches aplicados, el puerto cerrado, las credenciales renovadas y la DMZ segmentada, el tráfico anómalo se detuvo. La infraestructura vuelve a estar bajo control: caso resuelto.",
       desafios: [
         {
           id: "f3-01",
           tipo: "opcion_multiple",
           concepto: "Firewall",
-          pregunta: "Para contener el ataque, NEXUS Corp quiere filtrar el tráfico entre la red interna y la externa. ¿Qué dispositivo debés configurar?",
+          pregunta: "Para filtrar el tráfico entre la red interna y la externa, NEXUS Corp quiere aprobar o denegar conexiones por dirección y puerto. ¿Qué dispositivo configurás?",
           opciones: ["Switch", "Firewall", "Hub", "Repeatedor"],
           respuestaCorrecta: 1,
           pista: "Aplica reglas de permitir/denegar según dirección, puerto o aplicación.",
-          explicacion: "El firewall inspecciona el tráfico entrante y saliente y aplica políticas de seguridad definidas por reglas. Es la barrera típica entre la LAN y la WAN."
+          explicacion: "El firewall inspecciona el tráfico entrante y saliente y aplica políticas definidas por reglas. Es la barrera típica entre la LAN y la WAN."
+        },
+        {
+          id: "f3-02",
+          tipo: "evidencias",
+          concepto: "DMZ",
+          pregunta: "El servidor web público está en una red separada con acceso selectivo desde Internet. ¿Cómo se llama esa zona perimetral?",
+          opciones: ["DMZ", "VPN", "VLAN de usuarios", "Capa 2"],
+          respuestaCorrecta: 0,
+          pista: "Zona desmilitarizada: publica servicios hacia afuera sin exponer la LAN completa.",
+          explicacion: "La DMZ (zona desmilitarizada) aloja servicios públicos como web o correo: el firewall solo permite el tráfico necesario hacia ella y la aísla de la red interna.",
+          datos: {
+            evidencias: [
+              {
+                titulo: "Diagrama de zonas del firewall",
+                detalle: "WAN (Internet)\n   |\nFIREWALL\n   |--- DMZ:  web.nexus.com (203.0.113.5)\n   |         mail.nexus.com (203.0.113.6)\n   |--- LAN:  usuarios (192.168.x.x)"
+              }
+            ]
+          }
+        },
+        {
+          id: "f3-03",
+          tipo: "evidencias",
+          concepto: "VPN",
+          pregunta: "Un auditor se conecta desde un hotel al servidor de archivos como si estuviera dentro de la LAN. ¿Qué tecnología crea ese túnel cifrado?",
+          opciones: ["VPN", "VLAN", "DHCP", "STP"],
+          respuestaCorrecta: 0,
+          pista: "Extiende la red privada de forma cifrada por una red pública.",
+          explicacion: "La VPN crea un túnel cifrado entre el cliente remoto y la empresa, extendiendo la red privada sobre una infraestructura pública como Internet.",
+          datos: {
+            evidencias: [
+              {
+                titulo: "Registro del cliente VPN",
+                detalle: "[12:32:01] Conectando a vpn.nexus.local...\n[12:32:02] Túnel establecido (fase 1: IKE)\n[12:32:03] SA negociada - cifrado AES-256\n[12:32:04] Red interna alcanzable: 192.168.1.0/24"
+              }
+            ]
+          }
+        },
+        {
+          id: "f3-04",
+          tipo: "evidencias",
+          concepto: "OSPF",
+          pregunta: "La tabla de rutas del router muestra dos caminos al mismo destino y elige el de menor costo. ¿Qué protocolo de enrutamiento dinámico construye esta tabla?",
+          opciones: ["OSPF", "ARP", "NetBIOS", "STP"],
+          respuestaCorrecta: 0,
+          pista: "Enrutamiento dinámico de estado de enlace que calcula la mejor ruta por costo.",
+          explicacion: "OSPF es un protocolo de enrutamiento dinámico de estado de enlace: propaga las redes conocidas y calcula la mejor ruta por costo para construir la tabla.",
+          datos: {
+            evidencias: [
+              {
+                titulo: "Tabla de rutas del router",
+                detalle: "Destino          Siguiente salto      Costo\n192.168.10.0/24   192.168.1.2          10\n192.168.20.0/24   192.168.1.2          10\n0.0.0.0/0         192.168.1.1          1   (via OSPF)"
+              }
+            ]
+          }
+        },
+        {
+          id: "f3-05",
+          tipo: "evidencias",
+          concepto: "STP",
+          pregunta: "El switch detecta dos enlaces redundantes a otro switch y bloquea uno para evitar el bucle. ¿Qué protocolo evita bucles en la capa 2?",
+          opciones: ["STP", "OSPF", "DHCP", "ARP"],
+          respuestaCorrecta: 0,
+          pista: "Bloquea puertos redundantes hasta prevenir tramas en círculo.",
+          explicacion: "Spanning Tree Protocol evita los bucles de capa 2: calcula un árbol sin ciclos y bloquea los puertos redundantes para que no circule la misma trama por siempre.",
+          datos: {
+            evidencias: [
+              {
+                titulo: "Registro del switch",
+                detalle: "BPDU recibida en Gi0/2\nCambio de topologia detectado\nPuerto Gi0/2 bloqueado (Backup)\nRaiz de STP: 32768.aa-bb-cc-00-00-01"
+              }
+            ]
+          }
+        },
+        {
+          id: "f3-06",
+          tipo: "opcion_multiple",
+          concepto: "Tipos de enlace",
+          pregunta: "Necesitás unir el edificio principal con otra sede a 5 km donde no se puede colocar cobre por interferencias eléctricas. ¿Qué medio de transmisión conviene?",
+          opciones: ["UTP Cat 6", "Fibra óptica", "Coaxial", "Cable paralelo"],
+          respuestaCorrecta: 1,
+          pista: "Inmune a interferencias electromagnéticas y de larga distancia.",
+          explicacion: "La fibra óptica transmite por luz, soporta grandes distancias y es inmune a interferencias electromagnéticas, ideal para enlaces inter-sede."
+        },
+        {
+          id: "f3-07",
+          tipo: "opcion_multiple",
+          concepto: "Wireless",
+          pregunta: "En la red inalámbrica del edificio hay una red de invitados. ¿Qué práctica separa correctamente a los visitantes de la red interna?",
+          opciones: [
+            "Compartir la contraseña de la red corporativa",
+            "Crear una red Wi-Fi separada con acceso solo a Internet",
+            "Desactivar el cifrado para simplificar",
+            "Usar la misma VLAN que los empleados"
+          ],
+          respuestaCorrecta: 1,
+          pista: "Los invitados no deberían alcanzar recursos internos de la empresa.",
+          explicacion: "Una red de invitados separada (VLAN aparte y solo salida a Internet) aísla a los visitantes de los recursos internos."
+        },
+        {
+          id: "f3-08",
+          tipo: "evidencias",
+          concepto: "Punto vulnerable",
+          pregunta: "Comparando las reglas del firewall con el escaneo de la Fase 2, ¿qué componente permitió que el atacante accediera a la red?",
+          opciones: [
+            "El servidor web de la DMZ",
+            "El escritorio remoto (RDP) expuesto en un equipo interno",
+            "El switch de acceso",
+            "El punto de acceso de los invitados"
+          ],
+          respuestaCorrecta: 1,
+          pista: "La regla deja pasar el puerto 3389 hacia un equipo interno, y el log muestra intentos de acceso repetidos.",
+          explicacion: "Una regla habilitaba el puerto 3389 (RDP) hacia un equipo interno con credenciales débiles: el escaneo de la Fase 2 lo descubrió y el atacante entró por allí.",
+          datos: {
+            evidencias: [
+              {
+                titulo: "Reglas del firewall",
+                detalle: "PERMITIR  TCP * -> 203.0.113.5:80     (web DMZ)\nPERMITIR  TCP 192.168.30.7 -> 192.168.1.50:3389  (RDP)\nPERMITIR  TCP * -> vpn.nexus.local:443\nDENEGAR   RESTANTE"
+              },
+              {
+                titulo: "Registro de accesos 02:45 - 02:50",
+                detalle: "[02:45:12] Intento de inicio de sesion 192.168.30.7 -> 192.168.1.50:3389 (fallo)\n[02:45:14] Intento de inicio de sesion 192.168.30.7 -> 192.168.1.50:3389 (fallo)\n[02:46:01] Inicio de sesion exitoso 192.168.30.7 -> 192.168.1.50:3389\n[02:46:03] Ejecucion de comandos remotos"
+              }
+            ]
+          }
+        },
+        {
+          id: "f3-09",
+          tipo: "contencion",
+          concepto: "Contención",
+          pregunta: "Elegí el plan de contención más completo: marcá todas las medidas que correspondan y evitá las que agraven la situación.",
+          opciones: ["Ninguna"],
+          respuestaCorrecta: 0,
+          pista: "Se corta el acceso al equipo comprometido, se elimina el vector y se recupera el control del perímetro.",
+          explicacion: "Contener exige aislar el equipo comprometido, parchear el vector (RDP), renovar credenciales y reconfigurar el firewall; apagar el servicio de seguridad o perder evidencia agrava la situación.",
+          datos: {
+            medidas: [
+              "Desconectar de la red el equipo 192.168.1.50 comprometido",
+              "Cerrar el puerto 3389 en el firewall y quitar la regla",
+              "Aplicar los parches de seguridad pendientes",
+              "Renovar contraseñas de cuentas internas y de administrador",
+              "Apagar el firewall para no bloquear el tráfico bueno",
+              "Borrar los registros para que la red vuelva a andar rápido"
+            ],
+            correctas: [0, 1, 2, 3]
+          }
+        },
+        {
+          id: "f3-10",
+          tipo: "evidencias",
+          concepto: "Incidente",
+          pregunta: "Con el tráfico ya contenido, ¿qué conclusión cierra el caso?",
+          opciones: [
+            "La caída se debió a un pico de videollamadas del Marketing",
+            "El atacante ingresó desde Internet aprovechando el servicio RDP expuesto de un equipo interno",
+            "Un reinicio del servidor DNS causó todo el incidente",
+            "El switch se apagó por un rayo y nunca hubo intención maliciosa"
+          ],
+          respuestaCorrecta: 1,
+          pista: "El escaneo de la Fase 2, el log de acceso exitoso y la regla del 3389 apuntan al mismo lugar.",
+          explicacion: "La evidencia completa encaja: el escaneo (Fase 2) relevó el puerto 3389, la regla lo dejaba pasar hacia un equipo interno, y el log registra el acceso exitoso: el incidente entró por el RDP expuesto.",
+          datos: {
+            evidencias: [
+              {
+                titulo: "Línea de tiempo consolidada",
+                detalle: "02:30 - 02:45  Escaneo de puertos desde 192.168.30.7 (Fase 2)\n02:45:12       Intentos de acceso al puerto 3389 (RDP)\n02:46:01       Acceso exitoso al equipo interno 192.168.1.50\n02:46 - 03:00  Ejecucion de comandos y propagacion por la LAN\n03:00          Contencion aplicada y tráfico normalizado"
+              }
+            ]
+          }
         }
       ]
     }

@@ -6,7 +6,7 @@ Desarrollar un juego educativo de redes informaticas, web y sin backend, donde e
 
 ## Estado actual
 
-**Fase actual:** Hito 3 completado (Fase 2 con contenido completo, panel de evidencias y flujo de avance entre fases). Siguiente: Hito 4 (contenido completo de la Fase 3).
+**Fase actual:** Hitos 4 a 7 completados. Las tres fases tienen contenido completo (30 desafios), el informe final es rico en metricas/logros, hay intro narrativa, expediente, manejo de errores y accesibilidad basica. Siguiente: tester manual y pulido de UX.
 
 ## Seguimiento de tareas
 
@@ -38,38 +38,38 @@ Desarrollar un juego educativo de redes informaticas, web y sin backend, donde e
 - [x] T-15 Desafios de analisis de paquetes y comunicacion entre dispositivos (capturas TCP, netstat, nslookup, nbtstat).
 - [x] T-16 Deteccion de trafico anomalo como cierre narrativo de la fase (f2-10: barrido de puertos). Ademas se agrego el flujo de avance entre fases (boton "Avanzar a la Fase N" en el cierre).
 
-### Hito 4 - Fase 3: El ataque (SIGUIENTE)
+### Hito 4 - Fase 3: El ataque
 
-- [ ] T-17 Contenido Fase 3 (Firewall, DMZ, VPN, OSPF, STP, enlaces, Wireless). Hay 1 demo.
-- [ ] T-18 Analisis del punto vulnerable.
-- [ ] T-19 Escenario de decision de contencion.
+- [x] T-17 Contenido Fase 3 (Firewall, DMZ, VPN, Routing/OSPF, Spanning Tree, tipos de enlaces, Wireless). 10 desafios (f3-01..f3-10).
+- [x] T-18 Desafio de analisis del punto vulnerable (f3-08: regla 3389 + log de acceso).
+- [x] T-19 Escenario de decision de contencion: tipo `contencion` (seleccion multiple de medidas, f3-09).
 
 ### Hito 5 - Evaluacion e informe final
 
-- [ ] T-20 Metricas de partida (resueltos, correctas, pistas).
-- [ ] T-21 Sistema de rango (base implementada en `Puntaje.rangoDeDetectivo`).
-- [ ] T-22 Pantalla de informe final (version base ya funciona al terminar una fase).
+- [x] T-20 Metricas de partida (fases resueltas, correctas, pistas usadas en el informe).
+- [x] T-21 Sistema de rango (base implementada en `Puntaje.rangoDeDetectivo`, nivel incluido en el informe).
+- [x] T-22 Pantalla de informe final: metricas + desglose por fase (estado, avance, conceptos) + rango.
 
 ### Hito 6 - UI/UX y gamificacion
 
-- [ ] T-23 Intro narrativa de NEXUS Corp.
-- [ ] T-24 Expediente/tablero de avance.
-- [ ] T-25 Retroalimentacion inmediata (ya hay mensaje correcto/incorrecto; falta pulir).
-- [ ] T-26 Tutoriales/guia por concepto.
-- [ ] T-27 Logros/hitos.
-- [ ] T-28 Responsive (base ya aplicada).
+- [x] T-23 Intro narrativa: escena "intro" con la historia del caso NEXUS al iniciar "Nueva investigación".
+- [x] T-24 Expediente/tablero de avance en el menu (estado de cada fase: Resuelta/En curso/Pendiente).
+- [x] T-25 Retroalimentacion inmediata (correcto/incorrecto + explicacion) en todos los tipos de desafio.
+- [x] T-26 Guia de conceptos por fase en el expediente del menu.
+- [x] T-27 Logros (7) derivados de las estadisticas, mostrados en el informe (`js/logros.js`).
+- [x] T-28 Responsive (media query base + ajuste de evidencias).
 
 ### Hito 7 - Calidad, accesibilidad y mantenimiento
 
-- [ ] T-29 Accesibilidad WCAG AA.
-- [ ] T-30 Rendimiento (<3s carga, 30fps).
-- [ ] T-31 Documentacion de codigo (parcial: existe `context/documentacion.md`).
-- [ ] T-32 Logging de errores.
-- [ ] T-33 Anti-trampas (parcial: respuestas no expuestas en el DOM).
+- [x] T-29 Accesibilidad basica: `:focus-visible`, `aria-live` en areas dinamicas, `prefers-reduced-motion`.
+- [x] T-30 Rendimiento: sin recursos pesados ni red; el juego corre completamente en cliente (carga local).
+- [x] T-31 Documentacion de codigo: cabeceras en todos los modulos + estructura y pruebas en `README.md`.
+- [x] T-32 Logging de errores: `js/errores.js` con `error` y `unhandledrejection` + aviso amigable.
+- [x] T-33 Anti-trampas: respuestas correctas jamas van al DOM ni a consola; se comparan en runtime.
 
 ## Notas
 
-- El flujo completo actual: menu → fase 1 (10, 1 interactivo) → cierre → criterio "Avanzar a la Fase 2" → fase 2 (10, 9 con panel de evidencias) → cierre → fase 3 (demo) → cierre "Ver informe" → informe. Probado con `node tests/test-flujo.js`.
-- Paso de fase implementado: cada cierre ofrece avanzar a la siguiente fase; solo en la ultima ofrece el informe. `EscenaJuego.iniciarFase(id)` y `continuarInvestigacion` reanudan la fase pendiente.
-- Fase 3 conserva 1 desafio demo; su contenido completo corresponde al Hito 4.
-- Los tests de integracion se ejecutan con Node contra stubs de DOM (ver `CONTEXT.md`).
+- Flujo completo: menu → expediente → intro (Nueva investigación) → fase 1 (10) → cierre → fase 2 (10) → cierre → fase 3 (10) → cierre → informe final (metricas + desglose + logros + rango).
+- Todos los tipos de desafio: `opcion_multiple`, `evidencias`, `reconstruccion` y `contencion`.
+- Los tests de integracion (`node tests/test-flujo.js`) recorren el juego completo y verifican intro, logros, informe y manejo de errores.
+- WCAG AA completo (contraste, navegacion) queda como auditoria final pendiente de revision con tester real.
