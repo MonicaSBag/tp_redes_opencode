@@ -11,10 +11,11 @@ Notas de arquitectura y especificaciones para agentes de IA y editores inteligen
 | Referencias cruzadas via `window` | Los modulos usan `window.NombreModulo` para referenciarse. No usar `import`/`export`. |
 | Contenido como objeto JS | `data/contenido.js` define `window.CONTENIDO` (objeto, no JSON fetch) para no depender de servidor local. |
 | Guardado | `localStorage` con clave `detective-redes:progreso`. |
-| Escenas | Secciones `.escena`; la activa lleva la clase `.activa` (ver `gestor-escenas.js`). Escenas: `menu`, `intro`, `juego`, `cierre`, `informe`. |
+| Escenas | Secciones `.escena`; la activa lleva la clase `.activa` (ver `gestor-escenas.js`). Escenas: `menu`, `intro`, `juego`, `informe`. |
 | Extraible por tipos | El motor registra "tipos" de desafio (`Motor.registrarTipo`). Implementados `opcion_multiple`, `evidencias`, `reconstruccion` y `contencion`; se pueden agregar tipos nuevos. |
-| Avance entre fases | Al terminar una fase, el cierre ofrece avanzar a la siguiente; solo en la ultima ofrece el informe final. |
-| Guardado de clientes extras | Los logros se derivan de las estadisticas guardadas (`js/logros.js`); no se persisten por separado. Errores globales en `js/errores.js`. |
+| Avance entre fases | Al terminar la ultima pregunta de una fase se avanza directo a la siguiente (sin pantalla de cierre desde 2026-09-14); al terminar la ultima fase se abre el informe final. |
+| Respuesta unica | Cada desafio se responde UNA sola vez: al acertar suma puntos y se avanza; al fallar se descuentan puntos, se revela la respuesta correcta y se avanza igual (no se puede re-elegir ni gastar pista para recibir feedback). |
+| Guardado de clientes extras | Los logros fueron removidos (mejora Trello procesada el 2026-09-14); el informe ya no los muestra. Errores globales en `js/errores.js`. |
 | Anti-trampas | Las respuestas no se revelan hasta resolver; no se imprimen en consola. Sin esto se fuerza localStorage, aceptado en alcance. |
 
 ## Esquema de localStorage (clave `detective-redes:progreso`)
@@ -38,14 +39,14 @@ Notas de arquitectura y especificaciones para agentes de IA y editores inteligen
 
 ```js
 {
-  version: 3,
+  version: 4,
   fases: [
     {
       id: "fase1",
       orden: 1,
       titulo: "La escena del crimen",
       conceptoGeneral: "Reconstrucción de la infraestructura",
-      pieza: "Texto narrativo que se muestra en la pantalla de cierre de la fase.",
+      pieza: "(ya no se usa: la pantalla de cierre fue removida)",
       desafios: [
         {
           id: "f1-01",
@@ -110,7 +111,7 @@ Escenario de contención: se eligen las medidas correctas de una lista (seleccio
 
 - DOM del tipo (orden de `tarjeta.children`): `[0]` cabecera, `[1]` pregunta, `[2]` lista `div.medidas` (botones `button.medida` con marca `.medida-marca` y texto `.medida-texto`), `[3]` boton `button.boton-verificar`, `[4]` pista, `[5]` boton pista, `[6]` retro.
 - Interaccion: tocar una medida la marca (clase `.seleccionada`); se pueden marcar varias; `Verificar` se habilita con al menos una marcada.
-- Validacion: la seleccion debe coincidir exactamente con `correctas`. Al acertar, las medidas correctas se marcan `.correcta` y se bloquean; al fallar se puede reintentar.
+- Validacion: la seleccion debe coincidir exactamente con `correctas`. Al acertar, las medidas correctas se marcan `.correcta` y se bloquean. Al fallar NO se puede reintentar (respuesta unica desde 2026-09-14): se marcan las correctas y se descuentan puntos.
 - Anti-trampas: `correctas` nunca va al DOM; se compara en runtime.
 
 ### Esquema del tipo `reconstruccion` (T-10)
@@ -119,7 +120,7 @@ Desafio interactivo de diagrama: se arma un "mapa" ubicando placas en nodos por 
 
 ```js
 {
-  id: "f1-08",
+  id: "f1-01",
   tipo: "reconstruccion",
   concepto: "Topología",
   pregunta: "...",
@@ -132,18 +133,23 @@ Desafio interactivo de diagrama: se arma un "mapa" ubicando placas en nodos por 
       { id: "nucleo", titulo: "Núcleo central" },
       { id: "segmento", titulo: "Segmento de usuarios (LAN)" }
     ],
-    opciones: ["Router", "Switch", "Gateway", "PC Contabilidad", "PC Marketing", "Hub"],
+    opciones: [                                  // placas arrastrables (con `iconos.<id>` opcional)
+      { id: "router", etiqueta: "Router", icono: "router" },
+      { id: "pc-contabilidad", etiqueta: "PC Contabilidad", icono: "pc" }
+    ],
     nodos: [                                     // lugares vacios a completar
-      { id: "nodo-router", zona: "wan", etiquetaCorrecta: "Router" },
-      { id: "nodo-pc1",   zona: "segmento", etiquetaCorrecta: "PC Contabilidad" }
+      { id: "nodo-router", zona: "wan", etiquetaCorrecta: "Router", grupo: null },
+      { id: "nodo-pc1",   zona: "segmento", etiquetaCorrecta: "PC Contabilidad", grupo: "usuarios" },
+      { id: "nodo-pc2",   zona: "segmento", etiquetaCorrecta: "PC Marketing", grupo: "usuarios" }
     ]
   }
 }
 ```
 
-- DOM del tipo: la interaccion este en `tarjeta.children[2]` (`div.red-diagrama`) con placas `button.red-chip`, nodos `button.nodo` (aria-label `Espacio de red <id>`) y boton `button.boton-verificar`.
-- Interaccion: tocar una placa la "arma" (clase `.activo`); tocar un nodo la coloca o (sin placa armada) la quita. `Verificar` se habilita al completar todos los nodos.
-- Anti-trampas: `etiquetaCorrecta` jamas se escribe en el DOM; la validacion se hace en runtime comparando la asignacion al verificar. Si falla, los nodos se marcan con `.incorrecta` y se puede reintentar. Se puede agregar un distractor en `opciones` sin corresponder a ningun nodo (p.ej. `Hub`).
+- DOM del tipo: la interaccion esta en `tarjeta.children[2]` (`div.red-diagrama`) con placas `button.red-chip` (con `span.icono` SVG inline via `document.createElementNS` y `span.red-chip-texto`), nodos `button.nodo` (aria-label `Espacio de red <id>`) y boton `button.boton-verificar`.
+- Interaccion: tocar una placa la "arma" (clase `.activo`); tocar un nodo la coloca o (sin placa armada) la quita. Al usar una placa, esta se oculta (`hidden = true`) y reaparece si se desasigna. `Verificar` se habilita al completar todos los nodos.
+- Grupos (`datos.nodos[].grupo`): los nodos con el mismo `grupo` pueden colocarse en cualquier orden dentro de su segmento; la verificacion compara por conjunto (los dos PCs son intercambiables). Esto resuelve el bug "error al invertir el orden de las respuestas".
+- Anti-trampas: `etiquetaCorrecta` jamas se escribe en el DOM; la validacion se hace en runtime comparando la asignacion al verificar. Al fallar se marcan los nodos `.incorrecta`, se revela el mapa correcto y NO se puede reintentar (respuesta unica). Se puede agregar un distractor en `opciones` sin corresponder a ningun nodo (p.ej. `Hub`).
 
 ## API publica de modulos
 
@@ -153,8 +159,8 @@ Desafio interactivo de diagrama: se arma un "mapa" ubicando placas en nodos por 
 - `actual()` - id de la escena visible.
 
 ### window.Puntaje
-- `PUNTOS_BASE` (100), `PENALIZACION_PISTA` (25).
-- `puntosPorDesafio(usoSinPista)` -> 100 o 75 (minimo 10).
+- `PUNTOS_BASE` (100), `PENALIZACION_PISTA` (25, se aplica al instante), `PENALIZACION_INCORRECTA` (50, se aplica al fallar).
+- `aplicarCorrecta(estado)` -> suma `PUNTOS_BASE`; `aplicarIncorrecta(estado)` -> resta `PENALIZACION_INCORRECTA`; `aplicarPista(estado)` -> resta `PENALIZACION_PISTA`. El puntaje nunca baja de 0 (piso).
 - `rangoDeDetectivo(proporcionPuntaje)` -> `{ nombre, nivel }` (5 rangos).
 
 ### window.Progreso
@@ -164,9 +170,13 @@ Desafio interactivo de diagrama: se arma un "mapa" ubicando placas en nodos por 
 - `CLAVE` (constante).
 
 ### window.Pistas
+- `LIMITE_PISTAS` (3): maximo de pistas por sesion de investigacion (desde 2026-09-14, antes era una por desafio).
 - `utilizada(estado, faseId, desafioId)` -> boolean.
-- `contarUsadas(estado)` -> numero total de pistas usadas.
-- `tomar(estado, faseId, desafio)` -> texto de la pista; marca como usada y guarda.
+- `contarUsadas(estado)` -> numero total de pistas consumidas.
+- `restantes(estado)` -> cuentas restantes del limite.
+- `limiteAlcanzado(estado)` -> boolean.
+- `disponibilidad(estado, faseId, desafioId)` -> `"releer"` (ya usada en este desafio), `"agotada"` (sin cupo) o `"disponible"`.
+- `tomar(estado, faseId, desafio)` -> texto de la pista; marca como usada (releer no gasta cupo) y guarda. Devuelve `null` si el limite esta alcanzado.
 
 ### window.Motor
 - `obtenerFase(id)` -> objeto fase o null.
@@ -178,30 +188,21 @@ Desafio interactivo de diagrama: se arma un "mapa" ubicando placas en nodos por 
 ### window.EscenaJuego
 - `iniciarInvestigacion()` - resetea progreso y comienza la fase 1.
 - `iniciarFase(idFase)` - arranca (o reanuda desde cero) una fase especifica: setea `estado.faseActual`, `indiceDesafio = 0`, guarda y navega a "juego".
-- `continuarInvestigacion()` - reanuda la fase en curso o, si no hay fase activa, la siguiente fase pendiente; si todas estan completas va al informe.
-- Al completar la ultima pregunta de una fase, `finalizarFase` marca la fase como completada y navega a la escena `cierre` (`window.EscenaCierre.mostrar(fase, estado)`).
-
-### window.EscenaCierre (T-12)
-- `mostrar(fase, estado)` - renderiza la narracion de cierre (`fase.pieza`) y los conceptos unicos de la fase como badges, y navega a la escena `cierre`.
-- Decide el boton `boton-cierre-avanzar`: si existe una fase siguiente muestra "Avanzar a la Fase N: <titulo>" y llama `window.EscenaJuego.iniciarFase(siguiente.id)`; en la ultima fase muestra "Ver informe de investigación" y llama `window.EscenaInforme.mostrar(estado)`.
-- Los estilos de cierre viven en `css/estilos.css` (`.cierre-narracion`, `.cierre-cabecera`, `.conceptos-wrap`).
+- `abandonarInvestigacion()` - cierra la fase en curso (deja `faseActual` en `null`), guarda todo lo acumulado y navega al informe final (define el fin sin completar todas las preguntas).
+- Al completar la ultima pregunta de una fase, `finalizarFase` marca la fase como completada y avanza directo a la siguiente (sin pantalla de cierre). En la ultima fase navega al informe.
 
 ### window.EscenaIntro (T-23)
 - `mostrar()` - renderiza la narrativa del caso NEXUS en `#texto-intro` y navega a la escena `intro`.
 - El boton `boton-intro-comenzar` inicia la investigacion (`window.EscenaJuego.iniciarInvestigacion()`).
 
-### window.Logros (T-27)
-- `listar(estado)` -> array de `{ id, nombre, descripcion, desbloqueado }` (7 logros) derivado de las estadisticas del estado (resueltos, pistas, fases completadas, puntaje). No se persisten aparte.
-
 ### window.Errores (T-32)
 - `activar()` - instala `window.addEventListener("error")` y `("unhandledrejection")`; loguea en consola con prefijo y muestra una barra `#barra-errores` con aviso amigable (role="alert").
 
 ### window.EscenaInforme
-- `mostrar(estado)` - renderiza metricas y rango, y navega a la escena "informe".
+- `mostrar(estado)` - renderiza 5 metricas (fases resueltas, desafios correctos, pistas usadas `N/3`, puntaje, rango con nivel) y el desglose por fase, y navega a la escena "informe". No incluye logros (removidos el 2026-09-14).
 
 ### window.Menu
-- `inicializar()` - actualiza estado de botones (Nueva/Continuar), la linea de progreso y dibuja el expediente (`#expediente`): tablero de avance por fase (T-24) y guia de conceptos (T-26).
-- `boton-nueva-investigacion` abre la intro (T-23); `boton-continuar` reanuda.
+- `inicializar()` - habilita el boton "Nueva investigación" y dibuja el expediente (`#expediente`): tablero de avance por fase (T-24) y guia de conceptos (T-26). No hay boton "Continuar" ni resumen de sesion (removidos el 2026-09-14): cada investigacion arranca de cero o se abandona.
 
 ## Ventajas pendientes (roadmap)
 

@@ -54,6 +54,7 @@ global.document = {
     return elements[id];
   },
   createElement(tag) { return makeElement(tag); },
+  createElementNS(ns, tag) { return makeElement(tag); },
   querySelector(sel) { return this.getElementById(sel.replace(/^#/, "")); },
   querySelectorAll() { return []; },
   addEventListener(type, fn) { listenersDoc[type] = fn; },
@@ -81,10 +82,8 @@ cargar("js/progreso.js");
 cargar("js/pistas.js");
 cargar("js/errores.js");
 cargar("js/motor.js");
-cargar("js/logros.js");
 cargar("js/escena-intro.js");
 cargar("js/escena-juego.js");
-cargar("js/escena-cierre.js");
 cargar("js/escena-informe.js");
 cargar("js/menu.js");
 cargar("js/main.js");
@@ -100,35 +99,59 @@ const Progreso = J.window.Progreso;
 const GestorEscenas = J.window.GestorEscenas;
 const Menu = J.window.Menu;
 const EscenaJuego = J.window.EscenaJuego;
-const Logros = J.window.Logros;
 
+// Estructura: 3 fases x 4 desafios (mejoras Trello: reducir preguntas por fase).
 assert.strictEqual(CONTENIDO.fases.length, 3, "tres fases");
-assert.strictEqual(Motor.totalDesafios(Motor.obtenerFase("fase1")), 10, "fase1 con 10 desafios");
-assert.strictEqual(Motor.totalDesafios(Motor.obtenerFase("fase2")), 10, "fase2 con 10 desafios");
-assert.strictEqual(Motor.totalDesafios(Motor.obtenerFase("fase3")), 10, "fase3 con 10 desafios");
+for (const fase of CONTENIDO.fases) {
+  assert.strictEqual(Motor.totalDesafios(fase), 4, fase.id + " con 4 desafios");
+}
 
-assert.strictEqual(Puntaje.puntosPorDesafio(true), 100, "sin pista = 100pts");
-assert.strictEqual(Puntaje.puntosPorDesafio(false), 75, "con pista = 75pts");
-assert.strictEqual(Puntaje.rangoDeDetectivo(1).nombre, "Comisario de Redes", "rango maximo");
+// Puntaje: correcta +100, incorrecta -50, pista -25, piso en cero.
+{
+  const s = { puntaje: 100 };
+  Puntaje.aplicarCorrecta(s);
+  assert.strictEqual(s.puntaje, 200, "correcta suma 100");
+  Puntaje.aplicarIncorrecta(s);
+  assert.strictEqual(s.puntaje, 150, "incorrecta resta 50");
+  Puntaje.aplicarPista(s);
+  assert.strictEqual(s.puntaje, 125, "pista resta 25 (ya no solo al final)");
+  const bajo = { puntaje: 30 };
+  Puntaje.aplicarIncorrecta(bajo);
+  assert.strictEqual(bajo.puntaje, 0, "el puntaje no baja de cero");
+  assert.strictEqual(Puntaje.rangoDeDetectivo(1).nombre, "Comisario de Redes", "rango maximo");
+}
 
-let estado = { pistasUsadas: {} };
-const primerDesafio = Motor.obtenerDesafio(Motor.obtenerFase("fase1"), 0);
-const pista = Pistas.tomar(estado, "fase1", primerDesafio);
-assert.ok(pista.length > 0, "pista devuelta");
-assert.strictEqual(Pistas.contarUsadas(estado), 1, "se cuenta la pista");
-assert.strictEqual(Pistas.utilizada(estado, "fase1", "f1-01"), true, "pista marcada usada");
+// Pistas: maximo 3 por sesion; tomar devuelve null cuando estan agotadas.
+{
+  const estP = { pistasUsadas: {} };
+  const primerDesafio = Motor.obtenerDesafio(Motor.obtenerFase("fase1"), 0);
+  const pista = Pistas.tomar(estP, "fase1", primerDesafio);
+  assert.ok(pista && pista.length > 0, "pista devuelta");
+  assert.strictEqual(Pistas.contarUsadas(estP), 1, "se cuenta la pista");
+  assert.strictEqual(Pistas.restantes(estP), 2, "quedan 2 pistas");
+  assert.strictEqual(Pistas.disponibilidad(estP, "fase1", "f1-01"), "releer", "pista usada se puede releer");
+  const releida = Pistas.tomar(estP, "fase1", primerDesafio);
+  assert.ok(releida.length > 0, "se puede releer una pista usada");
+  assert.strictEqual(Pistas.contarUsadas(estP), 1, "releer no gasta otra pista");
 
-assert.ok(listenersWindow["error"], "se instala el manejador global de errores (T-32)");
+  const lleno = { pistasUsadas: { a: 1, b: 2, c: 3 } };
+  assert.strictEqual(Pistas.restantes(lleno), 0, "sin pistas restantes");
+  assert.strictEqual(Pistas.limiteAlcanzado(lleno), true, "limite alcanzado");
+  assert.strictEqual(Pistas.disponibilidad(lleno, "fase1", "f1-02"), "agotada", "nueva pista agotada");
+  assert.strictEqual(Pistas.tomar(lleno, "fase1", primerDesafio), null, "no se otorgan pistas sin cupo");
+}
+
+assert.ok(listenersWindow["error"], "se instala el manejador global de errores");
 assert.ok(listenersWindow["unhandledrejection"], "se instala el manejador de promesas rechazadas");
 
+// Menu: expediente con guia de conceptos; sin resumen de sesion ni continuar.
 Menu.inicializar();
 assert.strictEqual(GestorEscenas.actual(), "menu", "el juego arranca en el menu");
-assert.strictEqual(elements["boton-continuar"].disabled, true, "sin juego no se puede continuar");
-assert.strictEqual(elements["expediente"].children[0].className, "expediente-titulo", "el expediente se dibuja (T-24)");
+assert.strictEqual(elements["expediente"].children[0].className, "expediente-titulo", "el expediente se dibuja");
 assert.strictEqual(recolectar("expediente-fase", elements["expediente"]).length, 3, "el tablero lista las 3 fases");
 
 elements["boton-nueva-investigacion"].listeners.click();
-assert.strictEqual(GestorEscenas.actual(), "intro", "nueva investigacion abre la intro narrativa (T-23)");
+assert.strictEqual(GestorEscenas.actual(), "intro", "nueva investigacion abre la intro narrativa");
 assert.strictEqual(elements["texto-intro"].children.length, 3, "la intro tiene la historia de NEXUS");
 elements["boton-intro-comenzar"].listeners.click();
 assert.strictEqual(Progreso.cargar().faseActual, "fase1", "desde la intro comienza la fase 1");
@@ -166,6 +189,7 @@ function resolverDesafio(desafio) {
       nodoBoton.listeners.click();
       assert.strictEqual(nodoBoton.textContent, nododato.etiquetaCorrecta, "nodo asignado");
       assert.strictEqual(chip.classList.contains("activo"), false, "chip se desarma al asignar");
+      assert.strictEqual(chip.hidden, true, "la placa desaparece al usarse (mejora Trello)");
     }
     const verificarBoton = recolectar("boton-verificar", diagrama)[0];
     assert.strictEqual(verificarBoton.disabled, false, "verificar habilitado al completar");
@@ -189,10 +213,9 @@ function resolverDesafio(desafio) {
   elements["boton-siguiente"].listeners.click();
 }
 
-function resolverFase(idFase, totalEsperado) {
+function resolverFase(idFase) {
   const fase = Motor.obtenerFase(idFase);
   assert.ok(fase, `fase ${idFase} existe`);
-  assert.strictEqual(fase.desafios.length, totalEsperado, `${idFase} con ${totalEsperado} desafios`);
   for (let i = 0; i < fase.desafios.length; i++) {
     resolverDesafio(fase.desafios[i]);
   }
@@ -204,56 +227,67 @@ function resolverFase(idFase, totalEsperado) {
   );
 }
 
-resolverFase("fase1", 10);
-assert.strictEqual(GestorEscenas.actual(), "cierre", "fase 1 termina en el cierre");
-assert.match(elements["boton-cierre-avanzar"].textContent, /^Avanzar a la Fase 2/, "el cierre ofrece avanzar");
-elements["boton-cierre-avanzar"].listeners.click();
-assert.strictEqual(Progreso.cargar().faseActual, "fase2", "se inicia la fase 2");
+// El flujo avanza directo entre fases (sin pantalla de cierre: mejora Trello).
+resolverFase("fase1");
+assert.strictEqual(Progreso.cargar().faseActual, "fase2", "fase 1 avanza directo a fase 2");
+assert.strictEqual(GestorEscenas.actual(), "juego", "sigue en la pantalla de juego");
 
-resolverFase("fase2", 10);
-assert.match(elements["boton-cierre-avanzar"].textContent, /^Avanzar a la Fase 3/, "el cierre ofrece avanzar");
-elements["boton-cierre-avanzar"].listeners.click();
-assert.strictEqual(Progreso.cargar().faseActual, "fase3", "se inicia la fase 3");
+resolverFase("fase2");
+assert.strictEqual(Progreso.cargar().faseActual, "fase3", "fase 2 avanza directo a fase 3");
 
-resolverFase("fase3", 10);
-assert.strictEqual(elements["boton-cierre-avanzar"].textContent, "Ver informe de investigación", "ultima fase->informe");
-elements["boton-cierre-avanzar"].listeners.click();
-assert.strictEqual(GestorEscenas.actual(), "informe", "el flujo termina en el informe");
+resolverFase("fase3");
+assert.strictEqual(GestorEscenas.actual(), "informe", "al terminar la fase 3 se abre el informe");
 
 const progreso = Progreso.cargar();
 assert.deepStrictEqual(progreso.fasesCompletadas, ["fase1", "fase2", "fase3"], "las tres fases completadas");
-assert.strictEqual(progreso.resueltos.length, 30, "30 desafios resueltos");
-assert.strictEqual(progreso.puntaje, 3000, "30 respuestas correctas sin pistas = 3000pts");
+assert.strictEqual(progreso.resueltos.length, 12, "12 desafios resueltos");
+assert.strictEqual(progreso.puntaje, 1200, "12 respuestas correctas sin pistas = 1200pts");
 
-// Informe (T-20..T-22): metricas, desglose por fase y logros (T-27).
+// Informe sin logros (mejora Trello): metricas + desglose por fase.
 const contenidoInforme = elements["contenido-informe"];
 assert.strictEqual(contenidoInforme.children[0].className, "info-grid", "informe con metricas");
 assert.strictEqual(contenidoInforme.children[0].children.length, 5, "cinco metricas en el informe");
 assert.strictEqual(contenidoInforme.children[1].className, "fases-resumen", "informe con desglose por fase");
 assert.strictEqual(recolectar("fase-resumen", contenidoInforme).length, 3, "tres bloques de fase");
-const logrosInforme = recolectar("logro", contenidoInforme);
-assert.strictEqual(logrosInforme.length, Logros.listar(progreso).length, "los logros se listan en el informe");
-assert.ok(
-  logrosInforme.every((l) => l.className.split(/\s+/).indexOf("logro-obtenido") !== -1),
-  "todos los logros desbloqueados"
-);
+assert.strictEqual(recolectar("logro", contenidoInforme).length, 0, "la seccion de logros se removio");
 
-const logros = Logros.listar(progreso);
-assert.strictEqual(
-  logros.find((l) => l.id === "caso-cerrado").desbloqueado,
-  true,
-  "caso cerrado al completar las 3 fases"
-);
-assert.strictEqual(
-  logros.find((l) => l.id === "operacion-limpia").desbloqueado,
-  true,
-  "operacion limpia sin pistas usadas"
-);
-assert.strictEqual(
-  logros.find((l) => l.id === "comisario-de-redes").desbloqueado,
-  true,
-  "rango maximo alcanzado"
-);
-assert.strictEqual(Progreso.cargar().fasesCompletadas.length, CONTENIDO.fases.length, "todas las fases resueltas");
+// Comportamiento de respuesta incorrecta: se descuenta, se bloquea y se revela la correcta.
+{
+  const cont = makeElement("div");
+  const estTest = { resueltos: [], fasesCompletadas: [], faseActual: "fase2", indiceDesafio: 1, puntaje: 500, pistasUsadas: {} };
+  let incorrectas = 0;
+  const fase2 = Motor.obtenerFase("fase2");
+  const d2 = Motor.obtenerDesafio(fase2, 1);
+  Motor.dibujarDesafio(cont, fase2, d2, 1, 4, {
+    estado: estTest,
+    alResponderCorrectamente: function () {},
+    alResponderIncorrectamente: function () {
+      incorrectas += 1;
+      Puntaje.aplicarIncorrecta(estTest);
+    },
+    alUsarPista: function () {}
+  });
+  const tarjetaM = cont.children[0];
+  const opciones = tarjetaM.children[3].children;
+  const indiceMal = (d2.respuestaCorrecta + 1) % d2.opciones.length;
+  opciones[indiceMal].listeners.click();
+  assert.strictEqual(incorrectas, 1, "se cuenta la respuesta incorrecta");
+  assert.strictEqual(estTest.puntaje, 450, "se descuentan los puntos acumulados");
+  assert.strictEqual(opciones[indiceMal].classList.contains("incorrecta"), true, "opcion incorrecta marcada");
+  assert.strictEqual(opciones[d2.respuestaCorrecta].classList.contains("correcta"), true, "se revela la correcta");
+  assert.strictEqual(opciones.every((o) => o.disabled), true, "no se puede volver a elegir (una sola oportunidad)");
+  const retro = tarjetaM.children[6];
+  assert.match(String(retro.textContent), /La respuesta correcta era/, "el feedback explica la correcta");
+}
+
+// Abandonar la investigacion: define que pasa si no se completan las preguntas.
+EscenaJuego.iniciarInvestigacion();
+assert.strictEqual(Progreso.cargar().faseActual, "fase1", "nueva investigacion en fase 1");
+elements["boton-abandonar"].listeners.click();
+assert.strictEqual(GestorEscenas.actual(), "informe", "abandonar lleva al informe final");
+const parcial = Progreso.cargar();
+assert.strictEqual(parcial.faseActual, null, "la fase en curso se cierra al abandonar");
+assert.strictEqual(parcial.resueltos.length, 0, "sin desafios resueltos si se abandona al inicio");
+assert.strictEqual(parcial.puntaje, 0, "sin puntaje acumulado");
 
 console.log("TODOS LOS TESTS PASARON");

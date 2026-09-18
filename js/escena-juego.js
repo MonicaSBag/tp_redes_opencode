@@ -2,6 +2,9 @@
   "use strict";
 
   // Escena de juego: flujo de desafios, puntaje, pistas y avance de fases.
+  // Sin cierre por fase: al terminar una fase se avanza directo a la siguiente
+  // y el feedback completo se da solo en el informe final.
+
   var estado = null;
   var faseActual = null;
 
@@ -22,6 +25,19 @@
     elemento("marcador-puntaje").textContent = estado.puntaje;
   }
 
+  function actualizarPistas() {
+    elemento("pistas-restantes").textContent = String(window.Pistas.restantes(estado));
+  }
+
+  function proximaFasePorOrden(fase) {
+    for (var i = 0; i < window.CONTENIDO.fases.length; i++) {
+      if (window.CONTENIDO.fases[i].orden === fase.orden + 1) {
+        return window.CONTENIDO.fases[i];
+      }
+    }
+    return null;
+  }
+
   function finalizarFase() {
     if (estado.fasesCompletadas.indexOf(faseActual.id) === -1) {
       estado.fasesCompletadas.push(faseActual.id);
@@ -29,7 +45,13 @@
     estado.faseActual = null;
     estado.indiceDesafio = 0;
     window.Progreso.guardar(estado);
-    window.EscenaCierre.mostrar(faseActual, estado);
+
+    var siguiente = proximaFasePorOrden(faseActual);
+    if (siguiente) {
+      iniciarFase(siguiente.id);
+    } else {
+      window.EscenaInforme.mostrar(estado);
+    }
   }
 
   function siguienteDesafio() {
@@ -50,6 +72,7 @@
     actualizarTitulo();
     actualizarAvance();
     actualizarMarcador();
+    actualizarPistas();
 
     window.Motor.dibujarDesafio(elemento("contenedor-desafio"), faseActual, desafio, estado.indiceDesafio, window.Motor.totalDesafios(faseActual), {
       estado: estado,
@@ -57,25 +80,28 @@
         if (estado.resueltos.indexOf(desafio.id) === -1) {
           estado.resueltos.push(desafio.id);
         }
-        var sinPista = !window.Pistas.utilizada(estado, faseActual.id, desafio.id);
-        estado.puntaje += window.Puntaje.puntosPorDesafio(sinPista);
+        window.Puntaje.aplicarCorrecta(estado);
         window.Progreso.guardar(estado);
         actualizarMarcador();
         botonSiguiente.hidden = false;
       },
-      alResponderIncorrectamente: function () {},
-      alUsarPista: function () {
+      alResponderIncorrectamente: function () {
+        window.Puntaje.aplicarIncorrecta(estado);
+        window.Progreso.guardar(estado);
         actualizarMarcador();
+        botonSiguiente.hidden = false;
+      },
+      alUsarPista: function () {
+        window.Puntaje.aplicarPista(estado);
+        window.Progreso.guardar(estado);
+        actualizarMarcador();
+        actualizarPistas();
       }
     });
   }
 
   function cargarFaseActual() {
     faseActual = window.Motor.obtenerFase(estado.faseActual);
-    if (!faseActual) {
-      window.EscenaInforme.mostrar(estado);
-      return;
-    }
     dibujarDesafioActual();
   }
 
@@ -92,36 +118,22 @@
     iniciarFase(window.CONTENIDO.fases[0].id);
   }
 
-  function proximaFasePendiente() {
-    for (var i = 0; i < window.CONTENIDO.fases.length; i++) {
-      var fase = window.CONTENIDO.fases[i];
-      if (estado.fasesCompletadas.indexOf(fase.id) === -1) {
-        return fase.id;
-      }
+  function abandonarInvestigacion() {
+    if (!estado) {
+      return;
     }
-    return null;
-  }
-
-  function continuarInvestigacion() {
-    estado = window.Progreso.cargar();
-    if (estado.faseActual) {
-      window.GestorEscenas.irA("juego");
-      cargarFaseActual();
-    } else {
-      var pendiente = proximaFasePendiente();
-      if (pendiente) {
-        iniciarFase(pendiente);
-      } else {
-        window.EscenaInforme.mostrar(estado);
-      }
-    }
+    estado.faseActual = null;
+    estado.indiceDesafio = 0;
+    window.Progreso.guardar(estado);
+    window.EscenaInforme.mostrar(estado);
   }
 
   elemento("boton-siguiente").addEventListener("click", siguienteDesafio);
+  elemento("boton-abandonar").addEventListener("click", abandonarInvestigacion);
 
   window.EscenaJuego = {
     iniciarInvestigacion: iniciarInvestigacion,
     iniciarFase: iniciarFase,
-    continuarInvestigacion: continuarInvestigacion
+    abandonarInvestigacion: abandonarInvestigacion
   };
 })();

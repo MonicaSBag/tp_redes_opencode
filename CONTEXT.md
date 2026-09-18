@@ -21,7 +21,7 @@ openCode/
 ├── README.md                  # Instrucciones de instalacion y uso
 ├── requirements.txt           # Dependencias de Python (solo documentacion)
 ├── .gitignore                 # Excluye .env/, caches, claves
-├── index.html                 # Punto de entrada (5 pantallas: menu, intro, juego, cierre, informe)
+├── index.html                 # Punto de entrada (4 pantallas: menu, intro, juego, informe)
 ├── css/
 │   └── estilos.css            # Tema "detective" con variables CSS
 ├── js/
@@ -32,10 +32,8 @@ openCode/
 │   ├── pistas.js              # window.Pistas - pistas y penalizacion
 │   ├── errores.js             # window.Errores - logging global de errores
 │   ├── motor.js               # window.Motor - renderizar y validar desafios
-│   ├── logros.js              # window.Logros - logros derivados del estado
 │   ├── escena-intro.js        # window.EscenaIntro - intro narrativa del caso
 │   ├── escena-juego.js        # window.EscenaJuego - flujo de juego
-│   ├── escena-cierre.js       # window.EscenaCierre - cierre narrativo de fase
 │   ├── escena-informe.js      # window.EscenaInforme - informe final
 │   ├── menu.js                # window.Menu - menu, expediente y tablero
 │   └── main.js                # Arranque: registra escenas y botones
@@ -46,7 +44,9 @@ openCode/
 ├── Documentacion/
 │   ├── Detective de Redes.docx        # Diseno original (no editar)
 │   ├── Requisitos - Detective de Redes.md
-│   └── Plan de desarrollo - Detective de Redes.md
+│   ├── Plan de desarrollo - Detective de Redes.md
+│   ├── mejoras-YYYY-MM-DD.md          # Tarjetas Trello procesadas (mejoras/bugs)
+│   └── fact-check-YYYY-MM-DD.md       # Verificacion tecnica del contenido
 └── context/                   # Documentacion para agentes de IA
     ├── project_milestones.md  # Estado de tareas por hito
     ├── documentacion.md       # Esquemas, API de modulos, decisiones
@@ -161,3 +161,30 @@ Registro cronologico de los puntos importantes de cada sesion de trabajo. Regla:
 - Incluye la advertencia de que las URLs de attachments de Trello requieren autenticacion (key+token) y que las imagenes que no rendericen se dejan como referencia.
 - Estado del proyecto: sin cambios en codigo del juego. Cambios en `CONTEXT.md` sin commitear (no se pidio commit).
 - Proximos pasos sugeridos: si el equipo crea tarjetas nuevas en "Tareas🤔", ejecutar "Procesar tarjetas de Trello"; para el juego, seguir con las 16 tarjetas que estan en DOING ⚙️ y decidir si se commitea al repositorio remoto de GitHub.
+
+### 2026-09-14 - Usuario: monic - Cierre de sesion (implementacion de las 16 tarjetas Trello + fact-check)
+
+- Se implementaron en el codigo del juego todas las 16 tarjetas de `Documentacion/mejoras-2026-09-14.md` (9 mejoras propuestas + 7 ajustes de bugs).
+- **Contenido v4** (`data/contenido.js`): reescrito a 4 desafios por fase (12 total) con enunciados en formato incidente; la reconstruccion (f1-01) usa placas con iconos SVG inline (`document.createElementNS`) y los PCs del mismo segmento cargan `grupo: "usuarios"` para verificarse por conjunto (arregla el bug "error al invertir el orden de las respuestas"). Las placas usadas desaparecen (`.hidden`) y reaparecen al desasignar.
+- **Puntaje** (`js/puntaje.js`): nueva API `aplicarCorrecta` (+100), `aplicarIncorrecta` (-50) y `aplicarPista` (-25, aplicada al instante de usarla), con piso en 0. Se elimino `Puntaje.puntosPorDesafio`.
+- **Pistas** (`js/pistas.js`): maximo 3 por sesion (`LIMITE_PISTAS`), helpers `restantes`, `limiteAlcanzado`, `disponibilidad` ("releer"/"agotada"/"disponible"); `tomar()` devuelve `null` sin cupo y releer no gasta cupo.
+- **Motor** (`js/motor.js`): cada desafio se responde UNA sola vez; al fallar se descuentan puntos, se revela la respuesta correcta y se continua sin permitir re-elegir (ninguna tarjeta fuerza a gastar pista para feedback). En la reconstruccion se corrigio una doble llamada redundante a `verificarGrupos`.
+- **Flujo** (`js/escena-juego.js`, `js/menu.js`, `js/main.js`, `js/escena-intro.js`): avance directo entre fases sin pantalla de cierre; boton "Abandonar la investigacion" (`EscenaJuego.abandonarInvestigacion()`) hacia el informe con progreso parcial; menu sin boton "Continuar" ni resumen de sesion; narracion de intro actualizada (4 desafios/fase, 3 pistas, descuentos).
+- **Informe** (`js/escena-informe.js`): sin seccion de logros; metricas: fases resueltas, desafios correctos, pistas `N/3`, puntaje y rango.
+- **HTML/CSS** (`index.html`, `css/estilos.css`): quitadas `#pantalla-cierre`, `#boton-continuar`, `#estado-progreso`, `#boton-reiniciar`; agregados `#boton-abandonar` y `#pistas-restantes`; estilos nuevos (`.barra-navegacion`, `.boton-abandonar`, `.red-chip` con `.icono`, pulso de nodos respetando `prefers-reduced-motion`); removidos estilos de cierre y logros.
+- Se eliminaron `js/escena-cierre.js` y `js/logros.js` (y sus `<script>` en `index.html`); ya no se cargan en `main.js` (4 escenas: menu, intro, juego, informe).
+- **Tests reescritos** (`tests/test-flujo.js`): recurren el juego completo con el flujo nuevo (12 desafios, puntaje maximo 1200, limite de pistas con releer, respuesta incorrecta que descuenta/revela/bloquea, abandono sin preguntas resueltas); el stub de DOM agrego `createElementNS`. `node tests/test-flujo.js` pasa y `node --check` no reporta errores.
+- **Fact-check** (`Documentacion/fact-check-2026-09-14.md`): se verificaron las afirmaciones tecnicas de los 12 desafios contra RFC (793, 1035, 2131, 826, 1812, 5737), IEEE (802.1Q, 802.1D), IANA (puertos 80/445/389/3389) y NIST SP 800-41/800-61. Resultado: 12/12 correctas; las simplificaciones didacticas (gateway como equipo propio, 443 para VPN, direcciones de documentacion) quedan documentadas.
+- Docs actualizados: `README.md` (arbol: 4 pantallas, sin logros/cierre; descripcion de fases), `CONTEXT.md` (arbol), `context/documentacion.md` (decisiones de arquitectura, esquema de contenido v4, tipo `reconstruccion` con grupos/iconos, APIs nuevas de `Puntaje`/`Pistas`/`EscenaJuego`/`EscenaInforme`/`Menu`; se eliminaron las secciones `EscenaCierre` y `Logros`) y `context/project_milestones.md` (Estado actual + seccion "Rediseno 2026-09-14").
+- Estado del proyecto: juego completo y jugable (12 desafios, 3 fases, informe sin logros), validado por el test de integracion. Cambios sin commitear (no se pidio commit). Queda pendiente probar en navegador real (la reconstruccion usa SVG via `createElementNS`) y commitea al repositorio de GitHub.
+
+### 2026-09-18 - Usuario: monic - Cierre de sesion (juego-noc.html)
+
+- **Entregable de esta sesion**: `juego-noc.html` (juego single-file "NEXUS CORP NOC", 9 tickets de formacion en 3 fases, HTML/CSS/JS vanilla, guardado en `localStorage` `nexus-noc-v1`). Es un archivo de la raiz del repo que NO pertenece al arbol de CONTEXT.md (proyecto Detective de Redes); no se modifico ningun archivo del juego principal.
+- **Desbloqueo de fases arreglado (bug de punto muerto)**: antes una fase solo se desbloqueaba si TODOS los tickets de la anterior quedaban "resuelto"; con tickets fallados se bloqueaba para siempre porque no habia reintento. Cambios: `faseDesbloqueada()` usa `faseRespondida(faseIdx-1)` (responder todos, aunque queden fallados); tarjetas de fase con estado "Incompleta" (`.phase-card.incompleta` + `.badge-incompleta`, CSS ambar nuevo); texto de bloqueo "Bloqueada — respondé todos los tickets de la fase anterior"; el sello del resumen distingue "CASO RESUELTO" (0 falladas) de "CASO INCOMPLETO".
+- **Reintento de tickets fallados implementado**: `verificar()` solo bloquea tickets "resuelto" (un "fallado" se vuelve a verificar); al fallar el feedback muestra el boton "↻ Reintentar" (`reintentarTicket(tid)`) que recarga la zona de resolucion SIN revelar la solucion y SIN resetear pistas ya consumidas; reabrir un ticket fallado desde la cola ofrece la interaccion (solo "resuelto" muestra la solucion congelada); "Siguiente" queda habilitado (reintento opcional, no forzado); en Fase 3 el salto automatico al resumen usa `faseCompletaAhora` para no interrumpir un retry. Regla documentada en el comentario del script.
+- **Bug critico corregido (reportado por el usuario al probar Ticket 1.3)**: la verificacion DnD comparaba `DND.slots[i]` (objetos `{id,t}` guardados por `moverA`) contra strings (`ordenCorrecto[i]` / `["firewall","gateway"]`) → un objeto nunca es `===` a un string, asi que SIEMPRE daba "Incorrecto" en 1.3 (OSI), 3.1 (firewall) y 3.2 (ranking). Fix: comparar `.id` en `calcularCorrecto` y en el resaltado verde de `congelarInteraccion` (`DND.slots[i] && DND.slots[i].id===esperado`).
+- Cambios de sesiones anteriores confirmados en este archivo: cabecera con nombre de usuario del login (`#usuario-cabecera`, `#avatar-cabecera`, `aplicarUsuarioCabecera()`, fallback "Alex"); ticket 1.3 con pool OSI vacio (el `onMount` recibia el elemento `[data-dnd]` en vez del contenedor `#zona-resolucion`).
+- **Harness de verificacion** (temporal, NO versionado): `C:\Users\monic\AppData\Local\Temp\opencode\noc-harness.js` con stub de DOM en Node; cubre los 9 tickets (DnD 1.3/3.1/3.2, consolas 2.1/2.2/2.3/3.3, opciones 1.1/1.2), flujo de reintentos, desbloqueo de fases y cabecera de usuario. Se actualizo para inyectar OBJETOS reales en los slots (como `moverA` en el navegador) y asi el bug objeto-vs-string no pueda regresar sin ser detectado. `node --check` del script extraido no reporta errores.
+- Estado del proyecto: `juego-noc.html` jugable de punta a punta (9 tickets, reintentos, desbloqueo por turno respondido, sello resuelto/incompleto). Cambios SIN commitear (no se pidio commit).
+- Proximos pasos: prueba manual en navegador real (drag & drop en 1.3/3.1/3.2, reintentos, desbloqueo de fase con fallados, sello final), y decidir si se commitea al repositorio remoto de GitHub.

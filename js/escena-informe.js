@@ -1,7 +1,8 @@
 (function () {
   "use strict";
 
-  // T-20..T-22 - Informe final: metricas, rango y desglose por fase.
+  // Informe final: metricas, rango y desglose por fase. El feedback completo
+  // de la investigacion se concentra aqui (no hay retro por fase).
 
   function totalDesafiosFase(fase) {
     return window.Motor.totalDesafios(fase);
@@ -101,47 +102,6 @@
     return envoltorio;
   }
 
-  function bloqueDeLogros(estado) {
-    var envoltorio = document.createElement("div");
-    envoltorio.className = "logros";
-
-    var titulo = document.createElement("h3");
-    titulo.className = "informe-seccion";
-    titulo.textContent = "Logros";
-    envoltorio.appendChild(titulo);
-
-    var lista = document.createElement("ul");
-    lista.className = "logros-lista";
-    var logros = window.Logros.listar(estado);
-    for (var i = 0; i < logros.length; i++) {
-      var item = document.createElement("li");
-      item.className = "logro" + (logros[i].desbloqueado ? " logro-obtenido" : "");
-
-      var contenido = document.createElement("span");
-      contenido.className = "logro-detalle";
-
-      var nombre = document.createElement("strong");
-      nombre.textContent = logros[i].nombre;
-      contenido.appendChild(nombre);
-
-      var descripcion = document.createElement("small");
-      descripcion.textContent = " — " + logros[i].descripcion;
-      contenido.appendChild(descripcion);
-
-      var marca = document.createElement("span");
-      marca.className = "logro-marca";
-      marca.setAttribute("aria-hidden", "true");
-      marca.textContent = logros[i].desbloqueado ? "✓" : "·";
-
-      item.appendChild(contenido);
-      item.appendChild(marca);
-      lista.appendChild(item);
-    }
-
-    envoltorio.appendChild(lista);
-    return envoltorio;
-  }
-
   function mostrar(estado) {
     var contenedor = document.getElementById("contenido-informe");
     contenedor.textContent = "";
@@ -155,7 +115,7 @@
     var filas = [
       { clave: "Fases resueltas", valor: String(estado.fasesCompletadas.length) + " / " + window.CONTENIDO.fases.length },
       { clave: "Respuestas correctas", valor: String(estado.resueltos.length) + " / " + totalDesafiosDelJuego() },
-      { clave: "Pistas utilizadas", valor: String(window.Pistas.contarUsadas(estado)) },
+      { clave: "Pistas utilizadas", valor: String(window.Pistas.contarUsadas(estado)) + " / " + window.Pistas.LIMITE_PISTAS },
       { clave: "Puntaje obtenido", valor: String(estado.puntaje) + " pts" },
       { clave: "Rango de detective", valor: rango.nombre + " (nivel " + rango.nivel + ")", claseValor: "valor-rango" }
     ];
@@ -179,7 +139,6 @@
 
     contenedor.appendChild(lista);
     contenedor.appendChild(bloquesDeFases(estado));
-    contenedor.appendChild(bloqueDeLogros(estado));
 
     window.GestorEscenas.irA("informe");
   }

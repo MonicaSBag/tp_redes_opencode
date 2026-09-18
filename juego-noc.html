@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NEXUS CORP — NOC Support Ticket System</title>
+<style>
+/* ============================================================
+   NEXUS CORP — NOC Support Ticket System
+   Juego educativo de redes. Single-file (HTML+CSS+JS vanilla).
+   Regla de puntuacion documentada en el JS (seccion "Lógica").
+   ============================================================ */
+:root{
+  --bg:#0a0e1a;
+  --bg-2:#060912;
+  --panel:rgba(18,24,44,.72);
+  --panel-2:#111a30;
+  --panel-3:#0d1426;
+  --borde:rgba(96,132,205,.22);
+  --borde-2:rgba(96,132,205,.42);
+  --t:#e8edf9;
+  --t-2:#9fb1d4;
+  --t-3:#67799d;
+  --verde:#43d17c;
+  --verde-bg:rgba(67,209,124,.13);
+  --celeste:#45b7ff;
+  --celeste-bg:rgba(69,183,255,.13);
+  --naranja:#ffa04d;
+  --naranja-bg:rgba(255,160,77,.13);
+  --violeta:#a98bff;
+  --violeta-bg:rgba(169,139,255,.13);
+  --rojo:#ff5a5f;
+  --rojo-bg:rgba(255,90,95,.13);
+  --ambar:#ffd166;
+  --ambar-bg:rgba(255,209,102,.13);
+  --gris:#6b7a99;
+  --gris-bg:rgba(107,122,153,.15);
+  --fase1:#45b7ff;
+  --fase2:#ffa04d;
+  --fase3:#a98bff;
+  --mono:Consolas,"Cascadia Mono","Courier New",monospace;
+  --sans:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:radial-gradient(1200px 700px at 70% -10%, rgba(69,110,220,.16), transparent 60%),
+             radial-gradient(900px 600px at -5% 110%, rgba(120,60,220,.10), transparent 55%),
+             var(--bg);
+  color:var(--t);
+  font-family:var(--sans);
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer}
+.hidden{display:none !important}
+.mono{font-family:var(--mono)}
+
+/* ---------- Scrollbars ---------- */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#22304f;border-radius:6px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:#2f4066;border:2px solid transparent;background-clip:content-box}
+
+/* ---------- Botones ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--panel-2);color:var(--t);
+  border:1px solid var(--borde);border-radius:9px;
+  padding:9px 16px;font-size:13px;font-weight:600;letter-spacing:.2px;
+  transition:background .15s,border-color .15s,transform .05s;
+}
+.btn:hover{border-color:var(--borde-2);background:#16203a}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-primary{background:linear-gradient(180deg,#1d3f8f,#14306e);border-color:#2b55b8;color:#eaf1ff}
+.btn-primary:hover{background:linear-gradient(180deg,#2449a5,#19377f)}
+.btn-danger{background:linear-gradient(180deg,#8f2f3a,#6d2029);border-color:#c2454f;color:#ffe9ea}
+.btn-ghost{background:transparent}
+.btn-ghost:hover{background:rgba(96,132,205,.08)}
+
+/* ---------- Pantallas complementarias (login) ---------- */
+.screen{position:fixed;inset:0;z-index:20}
+.neural-canvas{position:absolute;inset:0;width:100%;height:100%;background:var(--bg)}
+.neural-canvas svg{width:100%;height:100%}
+.neural-canvas svg circle{fill:var(--celeste);opacity:.35}
+.neural-canvas svg line{stroke:var(--celeste);stroke-opacity:.10}
+
+.login{display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.login::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(700px 460px at 50% 20%, rgba(69,110,220,.20), transparent 65%);
+}
+.login-card{
+  position:relative;z-index:2;width:min(430px,92vw);
+  background:var(--panel);backdrop-filter:blur(10px);
+  border:1px solid var(--borde);border-radius:16px;
+  box-shadow:0 0 0 1px rgba(69,110,220,.05), 0 24px 70px rgba(0,0,0,.5);
+  padding:38px 36px 34px;text-align:center;
+}
+.login-logo{display:flex;flex-direction:column;align-items:center;gap:16px;margin-bottom:4px}
+.login-logo .logo-hex{width:74px;height:74px;filter:drop-shadow(0 0 18px rgba(69,183,255,.4))}
+.login-logo h1{margin:2px 0 0;font-size:30px;letter-spacing:3px;font-weight:800}
+.login-logo .tagline{margin:4px 0 0;font-size:11px;letter-spacing:2.5px;color:var(--t-2);text-transform:uppercase}
+.login-sep{height:1px;background:linear-gradient(90deg,transparent,var(--borde-2),transparent);margin:26px 0 22px}
+.login-card h2{margin:0 0 6px;font-size:14px;letter-spacing:2.5px;color:var(--celeste);text-transform:uppercase}
+.login-card p.field-label{margin:18px 0 7px;text-align:left;font-size:11px;letter-spacing:1.2px;color:var(--t-2);text-transform:uppercase}
+.login-card input{
+  width:100%;background:var(--panel-3);border:1px solid var(--borde);border-radius:9px;
+  color:var(--t);padding:11px 13px;font-size:14px;outline:none;transition:border-color .15s;
+}
+.login-card input:focus{border-color:var(--celeste);box-shadow:0 0 0 3px rgba(69,183,255,.16)}
+.login-card .btn-primary{width:100%;justify-content:center;margin-top:20px;padding:12px;font-size:14px}
+.login-foot{margin-top:16px;font-size:11px;color:var(--t-3);letter-spacing:.4px}
+
+/* ---------- App shell ---------- */
+.app{
+  display:grid;height:100vh;
+  grid-template-areas:"top top" "side main" "foot foot";
+  grid-template-columns:224px 1fr;
+  grid-template-rows:64px 1fr auto;
+}
+.topbar{
+  grid-area:top;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:22px;
+  background:rgba(10,14,26,.82);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--borde);padding:0 20px;z-index:10;
+}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand .logo-hex{width:34px;height:34px;flex:0 0 auto;transition:filter .3s}
+.brand strong{font-size:16px;letter-spacing:2.2px;white-space:nowrap}
+.sistema{text-align:center;min-width:0}
+.sistema h1{margin:0;font-size:15px;font-weight:700;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sistema .sub{font-size:9.5px;letter-spacing:2.6px;color:var(--t-2);text-transform:uppercase;margin-top:2px}
+.usuario{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.avatar{
+  width:38px;height:38px;border-radius:50%;flex:0 0 auto;
+  background:radial-gradient(circle at 35% 30%, #2b5cb8, #15295c);
+  border:1px solid #3f6fd6;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;color:#dce8ff;letter-spacing:.5px;
+}
+.usuario .ux{line-height:1.25;text-align:right}
+.usuario .ux b{display:block;font-size:13px}
+.usuario .ux span{display:block;font-size:11px;color:var(--t-2)}
+
+.sidebar{
+  grid-area:side;display:flex;flex-direction:column;
+  background:rgba(11,15,27,.85);border-right:1px solid var(--borde);padding:16px 12px;
+}
+.nav{display:flex;flex-direction:column;gap:4px;flex:1}
+.nav-item{
+  display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;
+  color:var(--t-2);font-size:13.5px;font-weight:600;letter-spacing:.2px;
+  border:1px solid transparent;background:transparent;text-align:left;width:100%;
+}
+.nav-item svg{flex:0 0 auto;opacity:.85}
+.nav-item:hover{background:rgba(96,132,205,.08);color:var(--t)}
+.nav-item.active{background:linear-gradient(180deg,#16224a,#101a38);color:#eaf1ff;border-color:#2b55b8;box-shadow:inset 0 0 0 1px rgba(43,85,184,.25)}
+.side-brand{
+  border-top:1px solid var(--borde);padding-top:14px;text-align:center;
+}
+.side-brand .sb-logo{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:6px}
+.side-brand .logo-hex{width:22px;height:22px}
+.side-brand b{font-size:11px;letter-spacing:1.6px}
+.side-brand .tl{font-size:8.5px;letter-spacing:1.8px;color:var(--t-3);text-transform:uppercase;line-height:1.7}
+
+.main{grid-area:main;overflow-y:auto;position:relative}
+.view{padding:26px 30px 40px;max-width:1200px;margin:0 auto}
+
+/* ---------- Footer ---------- */
+.app-footer{
+  grid-area:foot;display:flex;justify-content:space-between;align-items:center;
+  background:rgba(10,14,26,.9);border-top:1px solid var(--borde);
+  padding:8px 20px;font-size:10.5px;letter-spacing:1px;color:var(--t-3);
+}
+.app-footer .f-right{font-family:var(--mono);color:var(--t-2)}
+
+/* ---------- Inicio (dashboard) ---------- */
+.dash-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:24px}
+.dash-head h2{margin:0;font-size:24px;font-weight:800;letter-spacing:.3px}
+.dash-head p{margin:4px 0 0;color:var(--t-2);font-size:13px}
+.dash-head .acciones{display:flex;gap:8px}
+.phase-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+
+.phase-card{
+  background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:20px;
+  position:relative;overflow:hidden;transition:border-color .2s,box-shadow .2s;
+}
+.phase-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0}
+.phase-card.f1::before{background:var(--fase1)}.phase-card.f2::before{background:var(--fase2)}.phase-card.f3::before{background:var(--fase3)}
+.phase-card.active{border-color:var(--borde-2);box-shadow:0 0 0 1px var(--borde-2),0 14px 42px rgba(0,0,0,.35)}
+.phase-card.locked{opacity:.62}
+.phase-card.completada{border-color:rgba(67,209,124,.4);box-shadow:0 0 0 1px rgba(67,209,124,.25)}
+.phase-card.incompleta{border-color:rgba(255,209,102,.45);box-shadow:0 0 0 1px rgba(255,209,102,.22)}
+
+.pc-head{display:flex;align-items:flex-start;gap:13px}
+.pc-icon{
+  width:44px;height:44px;border-radius:11px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+}
+.pc-icon svg{width:24px;height:24px}
+.pc-icon.f1{background:var(--celeste-bg);color:var(--celeste)}
+.pc-icon.f2{background:var(--naranja-bg);color:var(--naranja)}
+.pc-icon.f3{background:var(--violeta-bg);color:var(--violeta)}
+.pc-titles{flex:1;min-width:0}
+.pc-titles .fase-tag{font-size:10.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--t-2);font-weight:700}
+.pc-titles h3{margin:3px 0 0;font-size:16px;font-weight:800}
+.pc-titles .turno{font-size:12px;color:var(--t-3);margin-top:2px}
+.badge-completada{
+  display:inline-flex;align-items:center;gap:5px;margin-left:auto;
+  background:var(--verde-bg);color:var(--verde);border:1px solid rgba(67,209,124,.35);
+  font-size:11px;font-weight:700;letter-spacing:.5px;padding:4px 9px;border-radius:99px;
+}
+.badge-bloqueada{
+  display:inline-flex;align-items:center;gap:5px;margin-left:auto;
+  background:var(--gris-bg);color:var(--t-3);border:1px solid rgba(107,122,153,.35);
+  font-size:11px;font-weight:700;letter-spacing:.5px;padding:4px 9px;border-radius:99px;
+}
+.badge-incompleta{
+  display:inline-flex;align-items:center;gap:5px;margin-left:auto;
+  background:var(--ambar-bg);color:var(--ambar);border:1px solid rgba(255,209,102,.35);
+  font-size:11px;font-weight:700;letter-spacing:.5px;padding:4px 9px;border-radius:99px;
+}
+.pc-tickets{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+.pc-ticket{
+  display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  background:rgba(13,20,38,.75);border:1px solid var(--borde);border-radius:9px;
+  padding:9px 11px;color:var(--t);transition:border-color .15s,background .15s;
+}
+.pc-ticket:hover{border-color:var(--borde-2);background:#131d36}
+.pc-ticket .t-id{font-family:var(--mono);font-weight:700;color:var(--celeste);font-size:12px}
+.pc-ticket .t-asunto{flex:1;min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-phase-btn{margin-top:16px;width:100%;justify-content:center}
+
+/* ---------- Chips de estado / prioridad ---------- */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;letter-spacing:.6px;padding:3px 8px;border-radius:99px;text-transform:uppercase;white-space:nowrap}
+.chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.chip-verde{background:var(--verde-bg);color:var(--verde);border:1px solid rgba(67,209,124,.3)}
+.chip-celeste{background:var(--celeste-bg);color:var(--celeste);border:1px solid rgba(69,183,255,.3)}
+.chip-rojo{background:var(--rojo-bg);color:var(--rojo);border:1px solid rgba(255,90,95,.3)}
+.chip-ambar{background:var(--ambar-bg);color:var(--ambar);border:1px solid rgba(255,209,102,.3)}
+.chip-gris{background:var(--gris-bg);color:var(--t-2);border:1px solid rgba(107,122,153,.3)}
+.chip-violeta{background:var(--violeta-bg);color:var(--violeta);border:1px solid rgba(169,139,255,.3)}
+
+/* ---------- Vista Fase (cola + detalle) ---------- */
+.fase-layout{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
+.fase-top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.fase-top .f-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.fase-top .f-icon svg{width:22px;height:22px}
+.fase-top h2{margin:0;font-size:19px;font-weight:800}
+.fase-top .ft-sub{font-size:12px;color:var(--t-2)}
+.queue-panel{
+  background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:16px;
+  position:sticky;top:18px;
+}
+.queue-panel h3{margin:0 0 4px;font-size:13px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--t-2)}
+.queue-turno{font-size:11.5px;color:var(--t-3);margin-bottom:10px}
+.q-progress{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.progress-bar{flex:1;height:7px;border-radius:99px;background:#0d1426;overflow:hidden;border:1px solid var(--borde)}
+.progress-bar i{display:block;height:100%;border-radius:99px;transition:width .4s}
+.q-count{font-family:var(--mono);font-size:12px;color:var(--t-2)}
+.queue-ticket{
+  display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;
+  background:rgba(13,20,38,.7);border:1px solid var(--borde);border-radius:10px;
+  padding:10px 11px;margin-bottom:8px;width:100%;text-align:left;color:var(--t);
+  transition:border-color .15s,background .15s;
+}
+.queue-ticket:hover{border-color:var(--borde-2)}
+.queue-ticket.sel{border-color:var(--borde-2);background:#15203a;box-shadow:0 0 0 1px var(--borde-2)}
+.queue-ticket .qt-id{font-family:var(--mono);font-weight:800;font-size:13px}
+.queue-ticket .qt-right{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
+.queue-ticket .qt-asunto{font-size:12.5px;grid-column:2;color:var(--t-2)}
+
+/* ---------- Detalle de ticket ---------- */
+.detalle{
+  background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:22px 24px;
+}
+.dt-vacio{
+  min-height:220px;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;
+  text-align:center;color:var(--t-3);font-size:13.5px;
+}
+.dt-vacio svg{width:44px;height:44px;opacity:.5}
+.dt-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.dt-head .dt-id{font-family:var(--mono);font-size:19px;font-weight:800}
+.dt-head .chip{font-size:11px;padding:5px 11px}
+.dt-asunto{margin:4px 0 14px;font-size:15px;font-weight:700;color:var(--t)}
+.dt-meta{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 16px;
+  background:rgba(13,20,38,.55);border:1px solid var(--borde);border-radius:10px;padding:12px 16px;margin-bottom:18px;
+}
+.dt-meta .m-field{min-width:0}
+.dt-meta .m-label{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--t-3);margin-bottom:2px}
+.dt-meta .m-value{font-size:13px;word-break:break-word}
+.dt-incidente{margin-bottom:20px}
+.dt-incidente h4,.dt-resolucion h4,.console-wrap h4{margin:0 0 8px;font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--t-2)}
+.dt-incidente blockquote{
+  margin:0;padding:14px 18px;border-left:3px solid var(--celeste);
+  background:rgba(13,20,38,.5);border-radius:0 10px 10px 0;
+  font-style:italic;color:var(--t-2);font-size:13.5px;line-height:1.6;color:#cdd9f2;
+}
+.dt-resolucion{margin-bottom:20px}
+.pregunta-lead{margin:0 0 12px;font-size:13.5px;color:var(--t-2)}
+.pregunta-lead b{color:var(--t)}
+
+/* ---- opciones multiples ---- */
+.options-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.option{
+  display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;
+  background:rgba(13,20,38,.7);border:1px solid var(--borde);border-radius:11px;
+  padding:16px 12px;color:var(--t);transition:border-color .15s,background .15s,transform .05s;
+}
+.option .opt-icon{width:100%;height:54px;display:flex;align-items:center;justify-content:center}
+.option .opt-icon svg{width:44px;height:44px;color:var(--t-2)}
+.option span{font-size:13px;font-weight:600}
+.option:hover{border-color:var(--borde-2)}
+.option.selected{border-color:var(--celeste);background:rgba(69,183,255,.10);box-shadow:0 0 0 1px var(--celeste)}
+.option.selected .opt-icon svg{color:var(--celeste)}
+.option.correct{border-color:var(--verde);background:var(--verde-bg);box-shadow:0 0 0 1px var(--verde)}
+.option.correct .opt-icon svg{color:var(--verde)}
+.option.wrong{border-color:var(--rojo);background:var(--rojo-bg);box-shadow:0 0 0 1px var(--rojo)}
+.option.wrong .opt-icon svg{color:var(--rojo)}
+.option.locked{opacity:.55;pointer-events:none}
+.options-list.plain .option{flex-direction:row;justify-content:flex-start;text-align:left}
+.opt-radio{
+  width:16px;height:16px;flex:0 0 auto;border-radius:50%;
+  border:2px solid var(--t-3);position:relative;transition:border-color .15s;
+}
+.option.selected .opt-radio{border-color:var(--celeste)}
+.option.selected .opt-radio::after{
+  content:"";position:absolute;inset:2px;border-radius:50%;background:var(--celeste);
+}
+.option.correct .opt-radio{border-color:var(--verde)}
+.option.correct .opt-radio::after{content:"";position:absolute;inset:2px;border-radius:50%;background:var(--verde)}
+.option.wrong .opt-radio{border-color:var(--rojo)}
+.option.wrong .opt-radio::after{content:"";position:absolute;inset:2px;border-radius:50%;background:var(--rojo)}
+
+/* ---- diagrama (1.2) ---- */
+.diagrama-topo{
+  background:#0a0f1d;border:1px solid var(--borde);border-radius:11px;
+  padding:14px;margin-bottom:14px;display:flex;justify-content:center;
+}
+.diagrama-topo svg{max-width:100%;height:auto}
+.diagrama-topo .nodo{fill:#16203c;stroke:var(--celeste);stroke-width:1.5}
+.diagrama-topo .nodo-pc{fill:#121c36;stroke:#44629e;stroke-width:1.2}
+.diagrama-topo .linea{stroke:#2b3f6c;stroke-width:1.2}
+.diagrama-topo text{fill:#9fb1d4;font-family:var(--mono);font-size:11px}
+.diagrama-topo .etq{fill:#cfe0fb;font-family:var(--mono);font-size:11px}
+
+/* ---- Consola simulada ---- */
+.console{
+  background:#070b12;border:1px solid #1d2a45;border-radius:11px;overflow:hidden;margin-bottom:6px;
+  box-shadow:inset 0 0 40px rgba(20,40,90,.15);
+}
+.console-header{
+  display:flex;align-items:center;gap:7px;padding:8px 12px;
+  background:#0d1526;border-bottom:1px solid #1d2a45;
+}
+.ch-dot{width:10px;height:10px;border-radius:50%}
+.console-header .ch-title{flex:1;text-align:center;font-family:var(--mono);font-size:11px;color:#7f92ba}
+.console-header button{
+  background:transparent;border:none;color:#66799f;font-size:11px;font-family:var(--mono);
+  display:inline-flex;gap:5px;align-items:center;padding:2px 6px;border-radius:5px;
+}
+.console-header button:hover{color:var(--celeste);background:rgba(69,183,255,.08)}
+.console-body{
+  padding:14px 16px;min-height:150px;font-family:var(--mono);font-size:12.5px;line-height:1.65;
+  color:#a8e6c4;white-space:pre-wrap;word-break:break-word;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.012) 0 1px,transparent 1px 3px);
+}
+.console-body .c-cmd{color:#ffd166}
+.console-body .c-d {color:#a8e6c4}
+.console-body .c-cursor{display:inline-block;width:7px;height:14px;background:#a8e6c4;vertical-align:-2px;margin-left:1px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ---- Drag & drop ---- */
+.dnd-wrap{margin-bottom:10px}
+.dnd-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.dnd-layout.single{grid-template-columns:1fr}
+.dnd-pool{
+  background:rgba(13,20,38,.55);border:1px dashed var(--borde-2);border-radius:11px;padding:12px;
+}
+.dnd-pool h5,.dnd-slots h5{margin:0 0 10px;font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--t-3)}
+.dnd-items{display:flex;flex-wrap:wrap;gap:9px}
+.dnd-item{
+  user-select:none;display:inline-flex;align-items:center;gap:8px;
+  background:#16223f;border:1px solid var(--borde-2);border-radius:9px;
+  padding:9px 13px;font-size:13px;font-weight:700;color:var(--t);
+  box-shadow:0 3px 10px rgba(0,0,0,.25);
+}
+.dnd-item svg{width:18px;height:18px;color:var(--celeste)}
+.dnd-item[draggable="true"]{cursor:grab}
+.dnd-item[draggable="true"]:active{cursor:grabbing}
+.dnd-item.sel-modified{border-color:var(--naranja);box-shadow:0 0 0 1px var(--naranja)}
+.dnd-item.dragging{opacity:.5;transform:scale(1.02)}
+.slots{display:flex;flex-direction:column;gap:9px}
+.slot{
+  display:flex;align-items:center;gap:10px;min-height:44px;
+  border:1px dashed var(--borde-2);border-radius:9px;padding:7px 10px;
+  background:rgba(13,20,38,.5);transition:border-color .15s,background .15s;
+}
+.slot.drag-over{border-color:var(--celeste);background:rgba(69,183,255,.08)}
+.slot .slot-num{
+  font-family:var(--mono);font-weight:800;font-size:12px;color:var(--t-3);
+  background:#0d1426;border:1px solid var(--borde);border-radius:6px;padding:3px 7px;min-width:34px;text-align:center;
+}
+.slot .ph{color:var(--t-3);font-size:12px;flex:1;text-align:center}
+.slot .dnd-item{box-shadow:none}
+.slot .slot-top{flex:1;display:flex;flex-direction:column;gap:4px}
+.slot .slot-etq{width:100%;text-align:center;font-size:10px;font-family:var(--mono);color:var(--t-3)}
+
+.dnd-diagram{display:flex;flex-direction:column;gap:12px}
+.diagram-row{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.diag-box{
+  display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px;
+  background:#0d1526;border:1px solid var(--borde);border-radius:12px;min-width:128px;
+}
+.diag-box .db-ico{width:40px;height:40px;color:var(--celeste)}
+.diag-box .db-label{font-size:11.5px;color:var(--t-2);letter-spacing:.4px;text-align:center}
+.diag-box.dmz{border-color:var(--violeta);background:rgba(169,139,255,.06);border-style:dashed;min-width:170px}
+.diag-box.dmz .db-ico{color:var(--violeta)}
+.diag-arrow{color:#3d5079;font-size:20px}
+.diagram-row .slot-pos{min-height:52px}
+
+/* ---- Feedback ---- */
+.feedback{
+  display:none;margin:14px 0;padding:13px 16px;border-radius:10px;font-size:13.5px;line-height:1.55;
+}
+.feedback.show{display:block;animation:fadeIn .25s ease}
+.feedback .fb-t{font-weight:800;margin-bottom:4px;letter-spacing:.3px}
+.feedback.ok{background:var(--verde-bg);border:1px solid rgba(67,209,124,.4)}
+.feedback.ok .fb-t{color:var(--verde)}
+.feedback.ko{background:var(--rojo-bg);border:1px solid rgba(255,90,95,.4)}
+.feedback.ko .fb-t{color:var(--rojo)}
+.feedback .fb-acciones{margin-top:10px}
+.feedback .fb-acciones .btn{padding:8px 16px;font-size:12.5px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+.detail-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--borde);padding-top:16px;flex-wrap:wrap}
+.acciones-btn{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* ---------- Toast ---------- */
+.toast{
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(30px);
+  background:#16223f;border:1px solid var(--borde-2);color:var(--t);
+  padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:80;
+  box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- Asistente IA ---------- */
+.fab{
+  position:fixed;right:22px;bottom:22px;z-index:60;width:58px;height:58px;border-radius:50%;
+  background:linear-gradient(180deg,#1d3f8f,#14306e);border:1px solid #2b55b8;
+  display:flex;align-items:center;justify-content:center;color:#eaf1ff;
+  box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 0 4px rgba(43,85,184,.18);
+  transition:transform .15s;
+}
+.fab:hover{transform:scale(1.06)}
+.fab svg{width:26px;height:26px}
+.fab.dormido{background:linear-gradient(180deg,#232b3d,#171d2b);border-color:#39445c;box-shadow:none}
+
+.assistant{
+  position:fixed;right:22px;bottom:92px;z-index:61;width:372px;max-width:calc(100vw - 32px);
+  height:min(600px,72vh);background:var(--panel-2);border:1px solid var(--borde-2);border-radius:16px;
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.6);transform-origin:bottom right;
+  animation:popIn .18s ease;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.92) translateY(12px)}to{opacity:1;transform:none}}
+.assistant-head{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  background:linear-gradient(180deg,#142a56,#122248);border-bottom:1px solid var(--borde);
+}
+.assistant-head .a-ico{width:32px;height:32px;border-radius:9px;background:rgba(69,183,255,.14);display:flex;align-items:center;justify-content:center;color:var(--celeste)}
+.assistant-head .a-ico svg{width:19px;height:19px}
+.assistant-head .a-tit{flex:1;line-height:1.2}
+.assistant-head .a-tit b{display:block;font-size:13px}
+.assistant-head .a-tit span{font-size:10px;color:var(--t-3);letter-spacing:.4px}
+.token-meter{display:flex;align-items:center;gap:5px}
+.token-meter .tm-label{font-family:var(--mono);font-size:10px;color:var(--t-2)}
+.token-meter .tm-dots{display:flex;gap:3px}
+.token-meter .tm-dot{width:7px;height:7px;border-radius:50%;background:var(--verde);box-shadow:0 0 6px rgba(67,209,124,.7)}
+.token-meter .tm-dot.off{background:#333;box-shadow:none}
+.assistant-head .a-btn{background:transparent;border:none;color:var(--t-2);padding:4px;border-radius:6px;display:flex}
+.assistant-head .a-btn:hover{background:rgba(96,132,205,.12);color:var(--t)}
+.assistant-head .a-btn svg{width:16px;height:16px}
+.assistant-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:rgba(6,9,18,.4)}
+.msg{display:flex;flex-direction:column;gap:3px;max-width:86%}
+.msg-user{align-self:flex-end;align-items:flex-end}
+.msg-assist{align-self:flex-start;align-items:flex-start}
+.msg .burbuja{padding:9px 12px;font-size:13px;line-height:1.45;border-radius:13px;word-break:break-word}
+.msg-user .burbuja{background:linear-gradient(180deg,#1d3f8f,#16326c);color:#eaf1ff;border-bottom-right-radius:4px}
+.msg-assist .burbuja{background:rgba(22,34,63,.9);border:1px solid var(--borde);color:var(--t);border-bottom-left-radius:4px}
+.msg .t{font-family:var(--mono);font-size:9.5px;color:var(--t-3)}
+.msg-sys{align-self:center;text-align:center}
+.msg-sys .sys-burbuja{
+  background:var(--ambar-bg);border:1px solid rgba(255,209,102,.45);color:var(--ambar);
+  font-size:12px;line-height:1.4;padding:8px 12px;border-radius:10px;max-width:340px;
+  display:flex;gap:7px;align-items:flex-start;
+}
+.msg-sys .sys-burbuja.sys-rojo{background:var(--rojo-bg);border-color:rgba(255,90,95,.45);color:var(--rojo)}
+.msg-sys .sys-burbuja svg{flex:0 0 auto;width:14px;height:14px;margin-top:2px}
+.assistant-composer{border-top:1px solid var(--borde);padding:10px 12px;background:#0e1730;display:flex;flex-direction:column;gap:8px}
+.quick-hint{
+  background:var(--celeste-bg);border:1px solid rgba(69,183,255,.35);color:var(--celeste);
+  border-radius:9px;padding:8px 12px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:8px;justify-content:center;
+}
+.quick-hint:hover{filter:brightness(1.15)}
+.quick-hint:disabled{opacity:.45;cursor:not-allowed}
+.quick-hint svg{width:15px;height:15px}
+.composer{display:flex;gap:8px}
+.composer input{
+  flex:1;background:var(--panel-3);border:1px solid var(--borde);border-radius:9px;color:var(--t);
+  padding:9px 12px;font-size:13px;outline:none;
+}
+.composer input:focus{border-color:var(--celeste)}
+.composer input:disabled{opacity:.5}
+.composer button{
+  width:38px;height:38px;flex:0 0 auto;border-radius:9px;border:1px solid #2b55b8;
+  background:linear-gradient(180deg,#1d3f8f,#14306e);color:#eaf1ff;display:flex;align-items:center;justify-content:center;
+}
+.composer button:disabled{opacity:.4;cursor:not-allowed}
+.composer button svg{width:17px;height:17px}
+.typing-ind{display:inline-flex;gap:4px;padding:4px 2px}
+.typing-ind i{width:6px;height:6px;border-radius:50%;background:var(--t-2);animation:tTyp 1s infinite}
+.typing-ind i:nth-child(2){animation-delay:.15s}.typing-ind i:nth-child(3){animation-delay:.3s}
+@keyframes tTyp{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+/* ---------- Resumen ---------- */
+.resumen-head{text-align:center;margin-bottom:24px}
+.resumen-head h2{margin:0;font-size:26px;font-weight:800;letter-spacing:.4px}
+.resumen-head p{margin:5px 0 0;color:var(--t-2);font-size:13px}
+.resumen-stamp-wrap{position:relative}
+.stamp{
+  position:absolute;top:32%;left:50%;transform:translate(-50%,-50%) rotate(-16deg);
+  font-weight:900;font-size:44px;letter-spacing:5px;text-transform:uppercase;z-index:5;
+  pointer-events:none;white-space:nowrap;border:5px solid;border-radius:12px;padding:16px 30px;
+  opacity:.16;text-shadow:0 2px 10px rgba(0,0,0,.4);
+}
+.stamp.resuelto{color:#ff5a5f;border-color:#ff5a5f;transform:translate(-50%,-50%) rotate(-16deg) scale(1)}
+.stamp.incompleto{color:var(--ambar);border-color:var(--ambar)}
+.resumen-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:980px;margin:0 auto}
+.col-cards{display:flex;flex-direction:column;gap:14px}
+.col-chips{background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:18px;display:flex;flex-direction:column}
+.col-chips h3{margin:0 0 4px;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--t-2)}
+.contador-grande{font-family:var(--mono);font-size:30px;font-weight:800;margin:2px 0 12px}
+.contador-grande .ok-v{color:var(--verde)}
+.contador-grande .ko-v{color:var(--rojo)}
+.chip-flow{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip-flow .chip{font-size:12.5px;padding:6px 14px;font-family:var(--mono)}
+.estado-fase-card{
+  background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:15px 17px;
+  display:flex;align-items:center;gap:13px;
+}
+.estado-fase-card .ef-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.estado-fase-card .ef-ico svg{width:20px;height:20px}
+.estado-fase-card .ef-txt{flex:1;min-width:0}
+.estado-fase-card h4{margin:0;font-size:14px}
+.estado-fase-card .ef-sub{font-size:11.5px;color:var(--t-3);margin-top:1px}
+.estado-fase-card .ef-detalle{margin-top:8px;display:none;flex-wrap:wrap;gap:6px}
+.resumen-acciones{display:flex;justify-content:center;gap:10px;margin-top:28px;flex-wrap:wrap}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1080px){
+  .app{grid-template-columns:68px 1fr}
+  .sidebar{padding:14px 8px}
+  .nav-item{justify-content:center;padding:11px;gap:0}
+  .nav-item .nav-label{display:none}
+  .side-brand .sb-logo b,.side-brand .tl{display:none}
+  .fase-layout{grid-template-columns:1fr;grid-template-areas:"coladet" "detalle"}
+  .queue-panel{position:static}
+}
+@media (max-width:760px){
+  .topbar{grid-template-columns:auto 1fr;gap:10px;padding:0 12px}
+  .sistema{display:none}
+  .usuario .ux{display:none}
+  .view{padding:18px 14px 30px}
+  .resumen-grid{grid-template-columns:1fr}
+  .dnd-layout{grid-template-columns:1fr}
+  .stamp{font-size:28px;letter-spacing:3px;padding:10px 16px;white-space:normal;text-align:center}
+  .dt-head .chip{font-size:10px}
+}
+@media (max-width:460px){
+  .brand strong{font-size:13px;letter-spacing:1px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="pantalla-login" class="screen login">
+  <div class="neural-canvas" id="neural-canvas"></div>
+  <div class="login-card">
+    <div class="login-logo">
+      <svg class="logo-hex" viewBox="0 0 64 64" aria-hidden="true"><use href="#hex-n"/></svg>
+      <h1>NEXUS CORP</h1>
+      <div class="tagline">NETWORKS | PEOPLE | A SAFER TOMORROW</div>
+    </div>
+    <div class="login-sep"></div>
+    <h2>Inicio de sesión</h2>
+    <p class="field-label">Nombre de usuario</p>
+    <input id="login-user" type="text" placeholder="ej. areyes" autocomplete="off" />
+    <button id="login-btn" class="btn btn-primary">Ingresar →</button>
+    <div class="login-foot">Simulador de formación · NOC Support Ticket System · v1.0.0</div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app" class="app hidden">
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo-hex" viewBox="0 0 64 64" id="logo-cabeza" aria-hidden="true"><use href="#hex-n"/></svg>
+      <strong>NEXUS CORP</strong>
+    </div>
+    <div class="sistema">
+      <h1>NOC Support Ticket System</h1>
+      <div class="sub">PEOPLE | NETWORKS | A SAFER TOMORROW</div>
+    </div>
+    <div class="usuario">
+      <div class="ux"><b id="usuario-cabecera">Alex R.</b><span>NOC Analyst</span></div>
+      <div class="avatar" id="avatar-cabecera" aria-hidden="true">AR</div>
+    </div>
+  </header>
+
+  <aside class="sidebar">
+    <nav class="nav" aria-label="Navegación principal">
+      <button class="nav-item active" data-accion="inicio"><span data-ic="home"></span><span class="nav-label">Inicio</span></button>
+      <button class="nav-item" data-accion="tickets"><span data-ic="tickets"></span><span class="nav-label">Tickets</span></button>
+      <button class="nav-item" data-accion="operaciones"><span data-ic="actividad"></span><span class="nav-label">Operaciones</span></button>
+      <button class="nav-item" data-accion="recursos"><span data-ic="servidor"></span><span class="nav-label">Recursos</span></button>
+    </nav>
+    <div class="side-brand">
+      <div class="sb-logo">
+        <svg class="logo-hex" viewBox="0 0 64 64" aria-hidden="true"><use href="#hex-n"/></svg>
+        <b>NEXUS CORP</b>
+      </div>
+      <div class="tl">MONITOR / ANALYZE / RESPOND / LEARN</div>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <section id="view-inicio" class="view"></section>
+    <section id="view-fase" class="view hidden"></section>
+    <section id="view-resumen" class="view hidden"></section>
+  </main>
+
+  <footer class="app-footer">
+    <div>NEXUS CORP | CONOCIMIENTO HOY. REDES MÁS SEGURAS MAÑANA.</div>
+    <div class="f-right">v1.0.0</div>
+  </footer>
+</div>
+
+<!-- ===================== ASISTENTE IA ===================== -->
+<button id="fab-asistente" class="fab drowsy hidden" aria-label="Abrir Asistente IA" hidden></button>
+<div id="panel-asistente" class="assistant hidden"></div>
+
+<!-- ===================== TOAST ===================== -->
+<div id="toast" class="toast" role="status"></div>
+
+<!-- ===================== DEFINICIONES SVG ===================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="hex-n" viewBox="0 0 64 64">
+    <polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M20 45 L20 19 L44 45 L44 19" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+</svg>
+
+<script>
+"use strict";
+/* ============================================================
+   NEXUS CORP — NOC Support Ticket System
+   Juego educativo de redes · single-file · sin dependencias.
+
+   REGLA DE PUNTUACION (documentada):
+   La PRIMERA respuesta decide el estado del ticket:
+     - Correcta  -> estado "resuelto"  (verde)
+     - Incorrecta-> estado "fallado"  (rojo): se revela la
+       respuesta correcta y el ticket queda marcado "fallado",
+       PERO se puede REINTENTAR cuantas veces sea necesario
+       hasta responderlo bien (el botón "Reintentar" recarga la
+       zona de resolución; al acertar pasa a "resuelto").
+   Las fases se desbloquean en orden al RESPONDER todos los
+   tickets de la fase anterior (aunque algunos queden fallados);
+   el sello del Resumen final distingue:
+     - "CASO RESUELTO"  -> 0 preguntas falladas (todas correctas)
+     - "CASO INCOMPLETO"-> al menos 1 pregunta sigue fallada
+   Al responder la Fase 3 se abre automáticamente el Resumen.
+   ============================================================ */
+
+/* ----------------------- ICONOS SVG ----------------------- */
+const SVG = {
+  home:'<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>',
+  tickets:'<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>',
+  actividad:'<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-7 5 14 2.5-7h4"/></svg>',
+  servidor:'<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>',
+  red:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><circle cx="5" cy="5" r="1.8"/><circle cx="19" cy="5" r="1.8"/><circle cx="5" cy="19" r="1.8"/><circle cx="19" cy="19" r="1.8"/><path d="m6.6 6.6 3.2 3.2M14.2 14.2l3.2 3.2M17.4 6.6l-3.2 3.2M9.8 14.2l-3.2 3.2M5 5v14M19 5v14M5 5h14"/></svg>',
+  engranaje:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>',
+  escudo:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 9.2 8 11 4.6-1.8 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg>',
+  robot:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 8V4M12 8h0M8 12h.01M16 12h.01M12 16v0M9 15h.01M15 15h.01"/><path d="M12 4 8.5 6.5M12 4l3.5 2.5"/><path d="M2 13v3M22 13v3"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.2-.6L3 21l1.7-5.6A8.4 8.4 0 1 1 21 11.5z"/></svg>',
+  enviar:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>',
+  cerrar:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  minimizar:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>',
+  alarma:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+  bombilla:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.8.7 1 1.6 1 2.3h6c0-.7.2-1.6 1-2.3A7 7 0 0 0 12 2z"/></svg>',
+  candado:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  check:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m4 12 5 5L20 6"/></svg>',
+  reloj:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  usuario:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+  clase:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/><path d="M8 3 6 5M16 3l2 2"/></svg>',
+  reiniciar:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 2.6 6.4"/><path d="M3 21v-5h5"/></svg>',
+  buscar:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+  atras:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>',
+  adelante:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>',
+  soporte:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a8 8 0 0 0 16 0V9a8 8 0 1 0-16 0z"/><path d="M12 17v2a2 2 0 0 0 2 2h4"/></svg>',
+
+  /* iconos de dispositivos (1.1) */
+  hub:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2.5" y="8" width="19" height="8" rx="2"/><path d="M6.5 10v4M12 10v4M17.5 10v4"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><path d="M12 6v2.4M12 15.6V18M6 8 4.5 6.5M18 8l1.5-1.5M6 16l-1.5 1.5M18 16l1.5 1.5"/></svg>',
+  repetidor:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="2"/><path d="M8 12H4M16 12h-4M4 12l2-2M4 12l2 2M20 12l-2-2M20 12l-2 2"/></svg>',
+  router:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="8" width="19" height="8" rx="2"/><path d="M9 10.5a1.5 1.5 0 1 1-1.5 1.5M15 10.5A1.5 1.5 0 1 0 16.5 12"/></svg>',
+  sw:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2.5" y="8" width="19" height="8" rx="2"/><path d="M6.5 10v4M12 10v4M17.5 10v4M4.5 12h15"/></svg>',
+
+  /* iconos de enlaces (3.2) */
+  fibra:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="9" width="19" height="6" rx="3"/><path d="M6 12c.8-1.6 1.6-1.6 2.4 0s1.6 1.6 2.4 0 1.6-1.6 2.4 0 1.6 1.6 2.4 0 1.6-1.6 2.4 0"/></svg>',
+  mpls:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 17a3.5 3.5 0 1 0-.6-6.9 5 5 0 0 0-9.4 1.8A3.3 3.3 0 0 0 9.5 17h8z"/><path d="M20 10.5V11M4 13.5V13M6 7v1.5M18 5.5V7"/></svg>',
+  residencial:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12.5 12 4l9 8.5"/><path d="M5 11v9h14v-9"/><path d="M9.5 11.5a3.4 3.4 0 0 1 5 0M11 14.4a1.4 1.4 0 0 1 2 0"/></svg>',
+  celular:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2M5 7h14"/></svg>',
+  satelite:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 14a10 10 0 0 1 5 0"/><circle cx="4" cy="17.5" r="1.4"/><path d="M13 12l9 9-5 1-4-4z"/><circle cx="11.6" cy="5.4" r="1.2"/></svg>',
+  microondas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v10H4zM14 10h6v10h-6zM7 5.5h.01M17 11.5h.01"/><path d="M10 9h4"/></svg>',
+
+  nube:'<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0-.9-8.9 6 6 0 0 0-11.4 1.9A3.8 3.8 0 0 0 7 19h10.5z"/></svg>',
+  servidorweb:'<svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="13" rx="2"/><path d="M7 8h10M7 12h6M3 15l-2 5h22l-2-5"/></svg>',
+  pcs:'<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="8" height="9" rx="1.5"/><rect x="14" y="4" width="8" height="9" rx="1.5"/><path d="M6 13v3M18 13v3M6 16h12M4 19h16"/></svg>',
+  pc:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="15" height="11" rx="2"/><path d="M8 19h5M10.5 14v5M3 19h15"/></svg>',
+  monitor:'<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>'
+};
+
+function ic(nombre){ return SVG[nombre]||""; }
+
+/* ----------------------- CONTENIDO ----------------------- */
+const FASES = [
+  {
+    id:1, nombre:"Fase 1", turno:"Turno mañana", titulo:"Conectividad básica",
+    icono:"red", colorVar:"fase1", cliente:"Oficina Central, NEXUS Corp",
+    tickets:[
+      {
+        id:"1.1", asunto:"Red lenta y colisiones en Sucursal Nueva", prioridad:"media",
+        cliente:"Sucursal Nueva", fecha:"Lun 12/01/2026", hora:"08:05",
+        descripcion:"En la sucursal nueva conectamos 10 PCs a un mismo equipo y ahora todos ven el tráfico de todos, se generan colisiones y la red está muy lenta. Necesitamos identificar cuál es el dispositivo que está generando el problema y cuál sería el más adecuado para resolverlo.",
+        tipo:"opciones-con-icono", pregunta:"¿Cuál de estos dispositivos está causando el problema?",
+        opciones:[
+          {id:"hub", t:"Hub", icono:"hub"},
+          {id:"repetidor", t:"Repetidor", icono:"repetidor"},
+          {id:"router", t:"Router", icono:"router"},
+          {id:"switch", t:"Switch", icono:"sw"}
+        ],
+        correcta:"hub",
+        fbOk:"Correcto. El Hub pertenece a la capa física: replica el tráfico recibido por TODOS sus puertos y comparte un único dominio de colisión, por eso todos ven el tráfico de todos y se generan colisiones. La solución es reemplazarlo por un Switch, que analiza las direcciones MAC y envía la trama solo al puerto destino, segmentando los dominios de colisión.",
+        fbKo:"Incorrecto. El problema lo causa el Hub, porque replica el tráfico a todos los puertos y comparte un único dominio de colisión. El equipo más adecuado para resolverlo es el Switch (además el Router separa redes y el Repetidor solo regenera la señal).",
+        pistas:[
+          "Pensá qué dispositivo envía el tráfico recibido a todos sus puertos sin analizar a qué equipo debería llegar.",
+          "Buscá el dispositivo de capa física que comparte el mismo dominio de colisión y replica el tráfico por todos sus puertos: el Hub."
+        ]
+      },
+      {
+        id:"1.2", asunto:"Identificación de topología", prioridad:"media",
+        cliente:"Oficina Central, NEXUS Corp", fecha:"Lun 12/01/2026", hora:"08:32",
+        descripcion:"Se adjunta el diagrama de la red actual de la oficina. Necesitamos identificar qué tipo de topología es, porque vamos a documentarla para el plan de contingencia.",
+        tipo:"diagrama", pregunta:"Según el diagrama, ¿qué topología tiene la red?",
+        opciones:[
+          {id:"estrella", t:"Topología en estrella"},
+          {id:"bus", t:"Topología en bus"},
+          {id:"anillo", t:"Topología en anillo"}
+        ],
+        correcta:"estrella",
+        fbOk:"Correcto. Es una topología en estrella: cada equipo tiene un enlace independiente hacia un dispositivo central (el switch). Ventaja: si falla un enlace, los demás equipos siguen operando.",
+        fbKo:"Incorrecto. Todos los equipos se conectan con un enlace independiente a un dispositivo central: es una topología en estrella (en bus comparten una única línea y en anillo forman un circuito cerrado).",
+        pistas:[
+          "Observá cómo están conectadas las computadoras. Fijate si dependen de un dispositivo central o si están conectadas siguiendo una única línea o circuito.",
+          "Cuando todos los equipos tienen un enlace independiente hacia un dispositivo central, estás frente a una topología en estrella."
+        ]
+      },
+      {
+        id:"1.3", asunto:"Corte de comunicación - Modelo OSI", prioridad:"media",
+        cliente:"Oficina Central, NEXUS Corp", fecha:"Lun 12/01/2026", hora:"09:10",
+        descripcion:"El proveedor de soporte de nivel 3 pide que identifiquemos en qué capa se cortó la comunicación. Para eso, primero debemos ordenar correctamente las capas del modelo OSI.",
+        tipo:"osi",
+        capas:["Aplicación","Presentación","Sesión","Transporte","Red","Enlace de Datos","Física"],
+        ordenCorrecto:["Aplicación","Presentación","Sesión","Transporte","Red","Enlace de Datos","Física"],
+        fbOk:"Correcto. El orden de arriba hacia abajo es: Aplicación (7) → Presentación (6) → Sesión (5) → Transporte (4) → Red (3) → Enlace de Datos (2) → Física (1).",
+        fbKo:"Incorrecto. El orden correcto de arriba hacia abajo es: Aplicación (7) → Presentación (6) → Sesión (5) → Transporte (4) → Red (3) → Enlace de Datos (2) → Física (1).",
+        pistas:[
+          "Recordá que el modelo OSI tiene 7 capas: comienza con la transmisión física de los datos y termina con los servicios que utiliza el usuario.",
+          "El orden desde abajo hacia arriba es: Física → Enlace de Datos → Red → Transporte → Sesión → Presentación → Aplicación."
+        ]
+      }
+    ]
+  },
+  {
+    id:2, nombre:"Fase 2", turno:"Turno tarde", titulo:"Servicios caídos",
+    icono:"engranaje", colorVar:"fase2", cliente:"Oficina Central, NEXUS Corp",
+    tickets:[
+      {
+        id:"2.1", asunto:"Sin internet - IP extraña asignada", prioridad:"alta",
+        cliente:"Oficina Central, NEXUS Corp", fecha:"Mar 13/01/2026", hora:"13:15",
+        descripcion:"Un usuario reporta que no tiene internet, dice que apareció una IP rara. Revisamos la configuración del equipo y este es el resultado.",
+        tipo:"consola",
+        comando:"> ipconfig /all",
+        salida:[
+          "Adaptador de Ethernet Conexión de área local:",
+          "",
+          "   Sufijo DNS específico para la conexión. . :",
+          "   Descripción. . . . . . . . . . . . . . . . : Realtek PCIe GbE Family Controller",
+          "   Dirección física. . . . . . . . . . . . . . : 00-1A-2B-3C-4D-5E",
+          "   DHCP habilitado. . . . . . . . . . . . . . : Sí",
+          "   Configuración automática habilitada. . . . : Sí",
+          "   Vínculo-local IPv6. . . . . . . . . . . . . : fe80::1a2b:3c4d:5e6f%12",
+          "   Dirección IPv4. . . . . . . . . . . . . . . : 169.254.23.187(Preferido)",
+          "   Máscara de subred . . . . . . . . . . . . . : 255.255.0.0",
+          "   Puerta de enlace predeterminada. . . . . . :",
+          "   Servidor DHCP. . . . . . . . . . . . . . . :",
+          "   Servidores DNS. . . . . . . . . . . . . . . :",
+          "   NetBIOS sobre TCP/IP. . . . . . . . . . . . : Habilitado"
+        ],
+        pregunta:"¿Qué está ocurriendo con el equipo del usuario?",
+        opciones:[
+          {id:"dns", t:"Servidor DNS caído"},
+          {id:"tarjeta", t:"Tarjeta de Red dañada"},
+          {id:"dhcp", t:"No se recibió respuesta del servidor DHCP"},
+          {id:"virus", t:"El usuario tiene un virus"}
+        ],
+        correcta:"dhcp",
+        fraseCorrecta:"No se recibió respuesta del servidor DHCP",
+        fbOk:"Correcto. La dirección 169.254.23.187 es APIPA: Windows la asigna automáticamente cuando el equipo no logra obtener una configuración de red normal. No hay gateway ni DNS porque el servidor DHCP nunca respondió.",
+        fbKo:"Incorrecto. La IP 169.254.x.x es APIPA, autoasignada por Windows cuando el equipo no recibe respuesta del servidor DHCP. Revisá el servicio DHCP y la conexión del cable.",
+        pistas:[
+          "Prestá atención al rango de la dirección IPv4. Algunas direcciones son asignadas automáticamente por Windows cuando el equipo no logra obtener una configuración de red normal.",
+          "Una dirección 169.254.x.x es APIPA. Aparece cuando el cliente no recibió una respuesta del servidor DHCP."
+        ]
+      },
+      {
+        id:"2.2", asunto:"La web no carga por nombre", prioridad:"media",
+        cliente:"Oficina Central, NEXUS Corp", fecha:"Mar 13/01/2026", hora:"14:02",
+        descripcion:"El usuario dice que la web no carga por nombre, pero si pone la IP directamente sí funciona. Ejecutamos una consulta de resolución para verificar.",
+        tipo:"consola",
+        comando:"> nslookup www.serviciocritico.com",
+        salida:[
+          "Servidor:  UnKnown",
+          "Address:  192.168.1.1",
+          "",
+          "DNS request timed out.",
+          "    timeout was 2 seconds.",
+          "DNS request timed out.",
+          "    timeout was 2 seconds.",
+          "*** Tiempo de espera agotado para la solicitud de UnKnown."
+        ],
+        pregunta:"¿Qué servicio está caído?",
+        opciones:[
+          {id:"dns", t:"El servidor DNS no responde"},
+          {id:"web", t:"El servidor web destino está apagado"},
+          {id:"fw", t:"Firewall del usuario bloqueada"},
+          {id:"apipa", t:"Adaptador de red tiene una IP APIPA"}
+        ],
+        correcta:"dns",
+        fraseCorrecta:"El servidor DNS no responde",
+        fbOk:"Correcto. Si la web carga por IP pero no por nombre, la conectividad existe: el problema es la resolución de nombres. `nslookup` agota el tiempo de espera porque el servidor DNS no responde.",
+        fbKo:"Incorrecto. La web funciona por IP pero no por nombre: la conectividad existe y el problema es la resolución. `nslookup` marca timeout → el servidor DNS no responde.",
+        pistas:[
+          "Si el sitio funciona utilizando directamente su IP pero falla cuando escribís su nombre, la conectividad existe. Pensá qué servicio convierte nombres en direcciones IP.",
+          "El comando nslookup está mostrando tiempos de espera. El concepto clave es DNS: el servidor DNS no está respondiendo."
+        ]
+      },
+      {
+        id:"2.3", asunto:"No resuelve nombres de equipos", prioridad:"media",
+        cliente:"Oficina Central, NEXUS Corp", fecha:"Mar 13/01/2026", hora:"14:47",
+        descripcion:"En la doc vieja del cliente aparecen nombres de PC tipo \\\\PC-VENTAS, pero el sistema nuevo pide todo por IP/hostname. Probamos acceder por nombre de equipo:",
+        tipo:"consola",
+        comando:"> ping PC-VENTAS",
+        salida:[
+          "C:\\>ping PC-VENTAS",
+          "",
+          "No se puede encontrar el host PC-VENTAS. Compruebe el nombre e inténtelo de nuevo.",
+          "",
+          "C:\\>"
+        ],
+        pregunta:"¿Cuál es la causa del problema?",
+        opciones:[
+          {id:"ip", t:"El equipo no tiene IP configurada"},
+          {id:"cambio", t:"El nombre del equipo cambió"},
+          {id:"dns", t:"El servicio DNS está caído"},
+          {id:"nombres", t:"Falta de resolución de nombres"}
+        ],
+        correcta:"nombres",
+        fraseCorrecta:"Falta de resolución de nombres",
+        fbOk:"Correcto. `ping PC-VENTAS` devuelve que no encuentra el host: el problema es la resolución de nombres de equipos (NetBIOS/hostname), no la conectividad física.",
+        fbKo:"Incorrecto. El equipo existe y tiene IP, pero `ping` no encuentra el host por nombre: hay una falta de resolución de nombres (NetBIOS o DNS local).",
+        pistas:[
+          "El mensaje indica que el sistema no puede encontrar el equipo usando su nombre. Pensá en el mecanismo encargado de convertir nombres de equipos en direcciones utilizables en la red.",
+          "ping PC-VENTAS devuelve que no encuentra el host. El problema apunta directamente a una falta de resolución de nombres."
+        ]
+      }
+    ]
+  },
+  {
+    id:3, nombre:"Fase 3", turno:"Turno noche", titulo:"Diseño y seguridad",
+    icono:"escudo", colorVar:"fase3", cliente:"Oficina Central, NEXUS Corp",
+    tickets:[
+      {
+        id:"3.1", asunto:"Publicación segura de servidor web", prioridad:"alta",
+        cliente:"Oficina Central, NEXUS Corp", fecha:"Mié 14/01/2026", hora:"20:10",
+        descripcion:"Vamos a exponer un servidor web al público sin comprometer la red interna. Armá el esquema arrastrando los dispositivos a su posición correcta.",
+        tipo:"firewall",
+        elementos:[
+          {id:"firewall", t:"Firewall", icono:"escudo"},
+          {id:"gateway", t:"Gateway", icono:"router"}
+        ],
+        doble:true, // UI: se agrega un boton "Usar DMZ en... " — ver mas abajo
+        fbOk:"Correcto. El esquema queda: Internet → Firewall → DMZ (Servidor Web) → Gateway → Red interna. El Firewall filtra el tráfico hacia la DMZ y el Gateway conecta la DMZ con la red interna sin exponerla.",
+        fbKo:"Incorrecto. La estructura correcta es: Internet → Firewall → DMZ con el Servidor Web → Gateway → Red interna. El Firewall protege el ingreso desde Internet y la DMZ aísla el servidor público de la red interna.",
+        pistas:[
+          "Un servidor publicado en Internet no debería quedar dentro de la misma zona que los equipos internos. Pensá en cómo aislarlo y controlar el tráfico que entra y sale.",
+          "La estructura buscada separa Internet de la red interna mediante Firewall y DMZ: Internet → Firewall → DMZ con el servidor web → Gateway → Red interna."
+        ]
+      },
+      {
+        id:"3.2", asunto:"Ranking de enlaces entre sucursales", prioridad:"alta",
+        cliente:"Oficina Central, NEXUS Corp", fecha:"Mié 14/01/2026", hora:"21:25",
+        descripcion:"El cliente tiene 6 sucursales y pide que rankeemos las opciones de enlace por costo/performance. Ordená las opciones de la 1 (más conveniente) a la 6 (menos conveniente).",
+        tipo:"ranking",
+        criterio:"1 = más conveniente · 6 = menos conveniente (relación costo/performance)",
+        elementos:[
+          {id:"fibra", t:"Fibra dedicada", icono:"fibra"},
+          {id:"mpls", t:"MPLS", icono:"mpls"},
+          {id:"microondas", t:"Microondas punto a punto", icono:"microondas"},
+          {id:"mobile", t:"4G/5G", icono:"celular"},
+          {id:"residencial", t:"Internet residencial", icono:"residencial"},
+          {id:"satelital", t:"Enlace satelital", icono:"satelite"}
+        ],
+        ordenCorrecto:["fibra","mpls","microondas","mobile","residencial","satelital"],
+        fbOk:"Correcto. De mejor a peor relación costo/performance: 1-Fibra dedicada, 2-MPLS, 3-Microondas punto a punto, 4-4G/5G, 5-Internet residencial, 6-Enlace satelital.",
+        fbKo:"Incorrecto. El ranking sugerido es: 1-Fibra dedicada, 2-MPLS, 3-Microondas punto a punto, 4-4G/5G, 5-Internet residencial, 6-Enlace satelital.",
+        pistas:[
+          "No ordenes solamente por velocidad. Compará rendimiento, costo, latencia y qué tan apropiado es cada enlace para conectar sucursales.",
+          "El criterio clave es la relación costo/performance: priorizá enlaces terrestres empresariales de buen rendimiento y penalizá alternativas con mayor latencia o costos elevados."
+        ]
+      },
+      {
+        id:"3.3", asunto:"Dos direcciones IP en el servidor nuevo", prioridad:"media",
+        cliente:"Oficina Central, NEXUS Corp", fecha:"Mié 14/01/2026", hora:"22:40",
+        descripcion:"El servidor nuevo muestra dos direcciones distintas en la config de red. Ejecutamos ipconfig para verificar.",
+        tipo:"consola",
+        comando:"> ipconfig",
+        salida:[
+          "Configuración de IP de Windows",
+          "",
+          "Adaptador de Ethernet Conexión de área local:",
+          "   Vínculo: dirección IPv6 local. . . . . . : fe80::a4d3:72f1:9c2e:8b4d%12",
+          "   Dirección IPv4. . . . . . . . . . . . . . : 192.168.10.25",
+          "   Máscara de subred . . . . . . . . . . . . : 255.255.255.0",
+          "   Puerta de enlace predeterminada. . . . . . : 192.168.10.1"
+        ],
+        pregunta:"¿Cuál es la diferencia correcta entre las dos direcciones?",
+        opciones:[
+          {id:"ok", t:"IPv4 usa notación decimal y tiene 32 bits"},
+          {id:"a", t:"IPv6 usa notación decimal y tiene 32 bits"},
+          {id:"b", t:"IPv4 usa notación hexadecimal y tiene 128 bits"},
+          {id:"c", t:"IPv6 usa notación decimal y tiene 64 bits"}
+        ],
+        correcta:"ok",
+        fraseCorrecta:"IPv4 usa notación decimal y tiene 32 bits",
+        fbOk:"Correcto. La dirección 192.168.10.25 es IPv4 (32 bits, notación decimal con puntos). La línea fe80:: es IPv6 (128 bits, notación hexadecimal separada por dos puntos).",
+        fbKo:"Incorrecto. IPv4 usa 32 bits y notación decimal con puntos; IPv6 usa 128 bits y notación hexadecimal separada por dos puntos (como fe80::a4d3...).",
+        pistas:[
+          "Compará la longitud y la forma de escribir las dos direcciones mostradas por ipconfig. Una usa números separados por puntos y la otra también incorpora letras y dos puntos.",
+          "IPv4 utiliza 32 bits y notación decimal con puntos; IPv6 utiliza 128 bits y notación hexadecimal separada por :."
+        ]
+      }
+    ]
+  }
+];
+
+const ESTADO_NOMBRE  = { pendiente:"Pendiente", en_curso:"En curso", resuelto:"Resuelto", fallado:"Fallada" };
+const ESTADO_CHIP    = { pendiente:"chip-gris", en_curso:"chip-celeste", resuelto:"chip-verde", fallado:"chip-rojo" };
+const PRIORIDAD_NOMBRE= { alta:"ALTA", media:"MEDIA", baja:"BAJA" };
+const PRIORIDAD_CHIP  = { alta:"chip-rojo", media:"chip-ambar", baja:"chip-verde" };
+
+/* ----------------------- ESTADO / PERSISTENCIA ----------------------- */
+const STORAGE_KEY = "nexus-noc-v1";
+let usuario = "Alex";
+let partida = null; // {tickets:{id:estado}, completadaF1, completadaF2? }
+// Progreso derivado de partida.tickets; se guarda solo el mapa de estados.
+
+function estadoInicial(){
+  const mapa = {};
+  FASES.forEach(f=>f.tickets.forEach(t=>mapa[t.id]="pendiente"));
+  return mapa;
+}
+function loadPartida(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    const d = JSON.parse(raw);
+    if(!d || typeof d!=="object" || !d.tickets) return null;
+    return d;
+  }catch(e){ return null; }
+}
+function savePartida(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(partida)); }
+  catch(e){ /* almacenamiento no disponible: se ignora */ }
+}
+function resetPartida(){
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  partida = { tickets: estadoInicial() };
+  savePartida();
+}
+if(!partida){
+  partida = loadPartida();
+  if(!partida){ partida = { tickets: estadoInicial() }; }
+}
+
+function getTicket(faseIdx, tickIdx){ return FASES[faseIdx].tickets[tickIdx]; }
+function findTicketMeta(id){
+  for(let f=0; f<FASES.length; f++){
+    for(let k=0; k<FASES[f].tickets.length; k++){
+      if(FASES[f].tickets[k].id===id) return { faseIdx:f, tickIdx:k };
+    }
+  }
+  return { faseIdx:-1, tickIdx:-1 };
+}
+function estadoTicket(id){ return partida.tickets[id] || "pendiente"; }
+function setEstado(id, e){ partida.tickets[id]=e; savePartida(); }
+function faseCompleta(faseIdx){
+  return FASES[faseIdx].tickets.every(t=>estadoTicket(t.id)==="resuelto");
+}
+function faseRespondida(faseIdx){
+  return FASES[faseIdx].tickets.every(t=>estadoTicket(t.id)==="resuelto" || estadoTicket(t.id)==="fallado");
+}
+function faseDesbloqueada(faseIdx){
+  if(faseIdx===0) return true;
+  // Se habilita al RESPONDER todos los tickets de la fase anterior
+  // (aunque algunos queden fallados); el sello del resumen distingue
+  // "CASO RESUELTO" (0 fallados) de "CASO INCOMPLETO".
+  return faseRespondida(faseIdx-1);
+}
+function totalRespondidos(){ return FASES.flatMap(f=>f.tickets).filter(t=>estadoTicket(t.id)!=="pendiente").length; }
+
+/* ----------------------- HELPERS DOM ----------------------- */
+function $(sel,root){ return (root||document).querySelector(sel); }
+function $$(sel,root){ return Array.from((root||document).querySelectorAll(sel)); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+let toastTimer=null;
+function toast(msg){
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove("show"), 2600);
+}
+
+/* ============================================================
+   NAVEGACIÓN
+   ============================================================ */
+let vistaActual = "inicio";
+let faseAbierta = 0;      // índice de fase abierta en la vista fase
+let ticketActual = null;  // id de ticket abierto
+let tipoAbierto = null;   // datos extra del dnd para re-anclar eventos
+
+function irInicio(){
+  vistaActual="inicio"; faseAbierta=0; ticketActual=null;
+  setNav("inicio");
+  $("#view-inicio").classList.remove("hidden");
+  $("#view-fase").classList.add("hidden");
+  $("#view-resumen").classList.add("hidden");
+  setFabVisible(false);
+  renderInicio();
+}
+function irFase(faseIdx){
+  if(!faseDesbloqueada(faseIdx)){
+    toast("⛔ Fase bloqueada: completá la fase anterior primero.");
+    return;
+  }
+  vistaActual="fase"; faseAbierta=faseIdx; ticketActual=null;
+  setNav("tickets");
+  $("#view-inicio").classList.add("hidden");
+  $("#view-resumen").classList.add("hidden");
+  $("#view-fase").classList.remove("hidden");
+  setFabVisible(true);
+  abrirPrimerTicket(faseIdx);
+}
+function irResumen(){
+  vistaActual="resumen"; ticketActual=null;
+  setNav("inicio");
+  $("#view-inicio").classList.add("hidden");
+  $("#view-fase").classList.add("hidden");
+  $("#view-resumen").classList.remove("hidden");
+  setFabVisible(false);
+  renderResumen();
+}
+function setNav(activo){
+  $$(".nav-item").forEach(b=>{
+    b.classList.toggle("active", b.dataset.accion===activo);
+  });
+}
+function setFabVisible(visible){
+  const fab = $("#fab-asistente");
+  fab.hidden = !visible;
+  fab.classList.toggle("hidden", !visible);
+  if(!visible) cerrarAsistente();
+}
+
+/* ============================================================
+   INICIO (dashboard de fases)
+   ============================================================ */
+function renderInicio(){
+  const vista = $("#view-inicio");
+  const nombre = usuario ? esc(usuario) : "Alex";
+  const todasRespondidas = totalRespondidos()===9;
+
+  let html = '<div class="dash-head">';
+  html += '<div><h2>Bienvenido, '+nombre+'</h2><p>Gestión de tickets de formación - NOC</p></div>';
+  html += '<div class="acciones">';
+  html += '<button class="btn btn-ghost" data-b="reiniciar">'+ic("reiniciar")+' Reiniciar recorrido</button>';
+  if(todasRespondidas){
+    html += '<button class="btn btn-primary" data-b="ver-resumen">Ver resumen final '+ic("adelante")+'</button>';
+  }
+  html += '</div></div>';
+
+  html += '<div class="phase-cards">';
+  FASES.forEach((fase, fi)=>{
+    const completada = faseCompleta(fi);
+    const incompleta = faseRespondida(fi) && !completada;
+    const enCurso = faseDesbloqueada(fi) && !completada;
+    const cerrada = !faseDesbloqueada(fi);
+    const numResueltos = fase.tickets.filter(t=>estadoTicket(t.id)==="resuelto").length;
+
+    let cls = "phase-card f"+(fi+1);
+    if(cerrada) cls+=" locked";
+    else if(completada) cls+=" completada";
+    else if(incompleta) cls+=" incompleta";
+    else if(enCurso) cls+=" active";
+
+    html += '<div class="'+cls+'">';
+    html += '<div class="pc-head">';
+    html += '<div class="pc-icon f'+(fi+1)+'">'+ic(fase.icono)+'</div>';
+    html += '<div class="pc-titles">';
+    html += '<div class="fase-tag">'+fase.nombre+' — '+fase.turno+'</div>';
+    html += '<h3>'+esc(fase.titulo)+'</h3>';
+    html += '<div class="turno">'+numResueltos+'/3 tickets resueltos</div>';
+    html += '</div>';
+    if(completada) html += '<span class="badge-completada">'+ic("check")+' Completada</span>';
+    else if(incompleta) html += '<span class="badge-incompleta">'+ic("alarma")+' Incompleta</span>';
+    else if(cerrada) html += '<span class="badge-bloqueada">'+ic("candado")+' Bloqueada</span>';
+    html += '</div>';
+
+    html += '<div><ul class="pc-tickets">';
+    fase.tickets.forEach(t=>{
+      const est = estadoTicket(t.id);
+      html += '<li class="pc-ticket">';
+      html += '<span class="t-id">#'+t.id+'</span>';
+      html += '<span class="t-asunto">'+esc(t.asunto)+'</span>';
+      html += '<span class="chip '+ESTADO_CHIP[est]+'"><span class="dot"></span>'+ESTADO_NOMBRE[est]+'</span>';
+      html += '<span class="chip '+PRIORIDAD_CHIP[t.prioridad]+'">'+PRIORIDAD_NOMBRE[t.prioridad]+'</span>';
+      html += '</li>';
+    });
+    html += '</ul></div>';
+
+    if(!cerrada){
+      html += '<button class="btn nav-phase-btn" data-fase="'+fi+'">'+
+        (completada ? 'Revisar fase' : 'Entrar a la fase')+' '+ic("adelante")+'</button>';
+    }else{
+      html += '<button class="btn nav-phase-btn" disabled>Bloqueada — respondé todos los tickets de la fase anterior</button>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  vista.innerHTML = html;
+
+  $$("[data-b]", vista).forEach(b=>{
+    b.addEventListener("click", ()=>{
+      if(b.dataset.b==="reiniciar") reiniciarFlujo();
+      if(b.dataset.b==="ver-resumen") irResumen();
+    });
+  });
+  $$("[data-fase]", vista).forEach(b=>{
+    b.addEventListener("click", ()=> irFase(parseInt(b.dataset.fase,10)));
+  });
+}
+
+function reiniciarFlujo(){
+  if(!confirm("¿Reiniciar todo el recorrido de formación? Se perderá el progreso actual.")) return;
+  resetPartida();
+  irInicio();
+  toast("Recorrido reiniciado.");
+}
+
+/* ============================================================
+   VISTA FASE — COLA + DETALLE
+   ============================================================ */
+function abrirPrimerTicket(faseIdx){
+  const pend = FASES[faseIdx].tickets.find(t=>estadoTicket(t.id)==="pendiente");
+  renderFase(faseIdx, pend ? pend.id : FASES[faseIdx].tickets[0].id);
+}
+
+function renderFase(faseIdx, ticketId){
+  const vista = $("#view-fase");
+  const fase = FASES[faseIdx];
+  const resueltos = fase.tickets.filter(t=>estadoTicket(t.id)==="resuelto").length;
+  const respondidos = fase.tickets.filter(t=>estadoTicket(t.id)!=="pendiente").length;
+
+  let html = '<div class="fase-top">';
+  html += '<div class="f-icon f'+(faseIdx+1)+'">'+ic(fase.icono)+'</div>';
+  html += '<div><h2>'+fase.nombre+' — '+esc(fase.turno)+'</h2><div class="ft-sub">'+esc(fase.titulo)+'</div></div>';
+  html += '</div>';
+
+  html += '<div class="fase-layout">';
+
+  /* --- Cola --- */
+  html += '<div class="queue-panel">';
+  html += '<h3>Tickets del turno</h3>';
+  html += '<div class="queue-turno">Fase '+fase.id+' de 3</div>';
+  const pct = (respondidos/3)*100;
+  html += '<div class="q-progress"><div class="progress-bar"><i style="width:'+pct+'%;background:var(--'+(fase.colorVar)+')"></i></div><span class="q-count">'+respondidos+'/3</span></div>';
+  fase.tickets.forEach(t=>{
+    const est = estadoTicket(t.id);
+    const sel = t.id===ticketId;
+    html += '<button class="queue-ticket'+(sel?" sel":"")+'" data-abrir="'+t.id+'">';
+    html += '<span class="qt-id" style="color:var(--'+(fase.colorVar)+')">#'+t.id+'</span>';
+    html += '<span class="qt-right">';
+    html += '<span class="chip '+ESTADO_CHIP[est]+'">'+ESTADO_NOMBRE[est]+'</span>';
+    html += '<span class="chip '+PRIORIDAD_CHIP[t.prioridad]+'">PRIORIDAD: '+PRIORIDAD_NOMBRE[t.prioridad]+'</span>';
+    html += '</span>';
+    html += '<span class="qt-asunto">'+esc(t.asunto)+'</span>';
+    html += '</button>';
+  });
+  html += '</div>';
+
+  /* --- Detalle --- */
+  html += '<div class="detalle" id="detalle-ticket">';
+  html += '</div>';
+
+  html += '</div>';
+  vista.innerHTML = html;
+
+  $$("[data-abrir]", vista).forEach(b=>{
+    b.addEventListener("click", ()=> abrirTicket(b.dataset.abrir));
+  });
+
+  if(ticketId){
+    abrirTicket(ticketId);
+  }else{
+    // Solo la cola: sin ticket abierto.
+    ticketActual = null;
+    $("#detalle-ticket").innerHTML =
+      '<div class="dt-vacio">'+ic("tablero")+' <span>Seleccioná un ticket de la cola para resolverlo.</span></div>';
+    setFabVisible(false);
+  }
+}
+
+/* ----------------------- DETALLE DE TICKET ----------------------- */
+function abrirTicket(tid){
+  ticketActual = tid;
+  const { faseIdx, tickIdx } = findTicketMeta(tid);
+  const t = getTicket(faseIdx, tickIdx);
+  const fase = FASES[faseIdx];
+  const cont = $("#detalle-ticket");
+  if(!cont) return;
+
+  // Si cambiamos de ticket cerramos/limpiamos el panel IA
+  limpiarConsolaTimers();
+  resetAsistenteTicket();
+
+  const est = estadoTicket(tid);
+  const resuelto = est==="resuelto";
+  const respondido = est!=="pendiente";
+  const reintento = est==="fallado";
+
+  let h = '<div class="dt-head">';
+  h += '<span class="dt-id" style="color:var(--'+(fase.colorVar)+')">Ticket #'+t.id+'</span>';
+  h += '<span class="chip '+PRIORIDAD_CHIP[t.prioridad]+'">PRIORIDAD: '+PRIORIDAD_NOMBRE[t.prioridad]+'</span>';
+  if(respondido){
+    h += '<span class="chip '+ESTADO_CHIP[est]+'"><span class="dot"></span>'+ESTADO_NOMBRE[est]+'</span>';
+  }
+  h += '</div>';
+  h += '<div class="dt-asunto">'+esc(t.asunto)+'</div>';
+
+  h += '<div class="dt-meta">';
+  h += '<div class="m-field"><div class="m-label">Asunto</div><div class="m-value">'+esc(t.asunto)+'</div></div>';
+  h += '<div class="m-field"><div class="m-label">Cliente</div><div class="m-value">'+esc(t.cliente||fase.cliente)+'</div></div>';
+  h += '<div class="m-field"><div class="m-label">Fecha y hora</div><div class="m-value">'+esc(t.fecha)+' · '+esc(t.hora)+' hs</div></div>';
+  h += '<div class="m-field"><div class="m-label">Turno y fase</div><div class="m-value">'+esc(fase.turno)+' · '+fase.id+'/3</div></div>';
+  h += '</div>';
+
+  h += '<div class="dt-incidente"><h4>Descripción del incidente</h4>';
+  h += '<blockquote>“'+esc(t.descripcion)+'”</blockquote></div>';
+
+  h += '<div class="dt-resolucion"><h4>Zona de resolución</h4><div id="zona-resolucion">';
+  h += '</div></div>';
+
+  h += '<div class="detail-actions">';
+  h += '<div class="acciones-btn">';
+  h += '<button class="btn btn-ghost" data-acc="volver">'+ic("atras")+' Volver a tickets</button>';
+  h += '</div>';
+  h += '<div class="acciones-btn">';
+  h += '<button class="btn btn-primary" id="btn-siguiente" disabled>'+ic("adelante")+' Siguiente</button>';
+  h += '</div></div>';
+
+  cont.innerHTML = h;
+
+  const zona = $("#zona-resolucion");
+  const spieg = $("#btn-siguiente");
+  if(resuelto){
+    // Respuesta finalizada y correcta: solución congelada.
+    const zra = zonaResolucionBloqueada(t, est);
+    zona.innerHTML = zra.html;
+    if(zra.onMount) zra.onMount(zona, true);
+    spieg.disabled=false;
+  }else if(reintento){
+    // Fallado: se puede reintentar. Se ofrece la interacción
+    // de nuevo (sin revelar la solución) y se avisa al usuario.
+    const zra = construirZonaResolucion(t, faseIdx, tickIdx);
+    zona.innerHTML = zra.html;
+    zra.onMount(zona, false);
+    spieg.disabled=false;
+  }else{
+    const zra = construirZonaResolucion(t, faseIdx, tickIdx);
+    zona.innerHTML = zra.html;
+    zra.onMount(zona, false);
+    if(respondido){ spieg.disabled=false; }
+  }
+
+  $("#btn-siguiente").addEventListener("click", ()=> siguienteDesde(tid));
+  $$("[data-acc=volver]", cont).forEach(b=> b.addEventListener("click", ()=> {
+    renderFase(faseIdx, null); // vuelve a la cola sin abrir ticket
+  }));
+
+  // banner del asistente IA según ticket
+  actualizarBannerAsistente();
+}
+
+function nextPendiente(faseIdx, tid){
+  const fase = FASES[faseIdx];
+  const pendiente = fase.tickets.filter(x=>estadoTicket(x.id)==="pendiente");
+  if(pendiente.length) return pendiente[0].id;
+  return null;
+}
+
+function siguienteDesde(tid){
+  const est = estadoTicket(tid);
+  const { faseIdx } = findTicketMeta(tid);
+  const fase = FASES[faseIdx];
+  if(faseRespondida(faseIdx)){
+    // Fase terminada
+    if(faseIdx===FASES.length-1){ irResumen(); return; }
+    toast("Fase "+(faseIdx+1)+" completada → Fase siguiente desbloqueada");
+    irInicio();
+    return;
+  }
+  const pend = nextPendiente(faseIdx, tid);
+  if(pend){ renderFase(faseIdx, pend); }
+  else{ irInicio(); }
+}
+
+/* ---------------- Zona bloqueada (ticket respondido) ---------------- */
+function zonaResolucionBloqueada(t, est){
+  // Se muestra la interacción congelada y la solución correcta marcada.
+  const resuelto = est==="resuelto";
+  const fbCls = resuelto ? "ok":"ko";
+  const fbTitulo = resuelto ? "✓ Correcto — ticket resuelto" : "✗ Incorrecto — ticket fallado";
+  let html = "";
+  if(["osi","ranking","firewall"].includes(t.tipo)){
+    html = dndSolucionHTML(t);
+  }else{
+    html = armadoInteraccion(t, { bloqueado:true, sinVerificar:true });
+  }
+  html += '<div class="feedback show '+fbCls+'"><div class="fb-t">'+fbTitulo+'</div><div>'+esc(resuelto?t.fbOk:t.fbKo)+'</div></div>';
+  return {
+    html: html,
+    onMount(z){
+      const solRoot = z.querySelector("[data-dnd-sol]");
+      if(solRoot){ llenarDndSolucion(solRoot); }
+      else if(z.querySelector("[data-consola]")){
+        const body = z.querySelector("[data-console-body]");
+        if(body) body.textContent = armarSalida(t);
+      }
+    }
+  };
+}
+
+function armarSalida(t){ return (t.salida||[]).join("\n"); }
+
+/* Solución correcta mostrada en un drag&drop ya respondido */
+function dndSolucionHTML(t){
+  let html = '<div data-dnd-sol="'+t.tipo+'">';
+  if(t.tipo==="osi"){
+    html += '<div class="dnd-slots"><h5>Modelo OSI (de superior a inferior)</h5><div class="slots">';
+    for(let i=0;i<7;i++){
+      const num = 7-i;
+      const etiqueta = i===0 ? "Capa superior (7)" : i===6 ? "Capa inferior (1)" : "";
+      html += '<div class="slot" data-sol-slot="'+i+'"><span class="slot-num">'+num+'</span><div class="slot-top"><span class="ph"></span>'+(etiqueta?'<span class="slot-etq">'+etiqueta+'</span>':'')+'</div></div>';
+    }
+    html += '</div></div>';
+  }else if(t.tipo==="ranking"){
+    html += '<div class="dnd-slots"><h5>Ranking 1..6 — solución</h5><div class="slots">';
+    for(let i=0;i<6;i++){
+      html += '<div class="slot" data-sol-slot="'+i+'"><span class="slot-num">'+(i+1)+'</span><div class="slot-top"><span class="ph"></span>'+(i===0?'<span class="slot-etq">Más conveniente</span>':i===5?'<span class="slot-etq">Menos conveniente</span>':'')+'</div></div>';
+    }
+    html += '</div></div>';
+  }else if(t.tipo==="firewall"){
+    html += '<div class="dnd-diagram">';
+    html += '<div class="diagram-row" style="flex-wrap:nowrap">';
+    html += '<div class="diag-box"><div class="db-ico" style="color:var(--celeste)">'+ic("nube")+'</div><div class="db-label">Internet</div></div>';
+    html += '<span class="diag-arrow">→</span>';
+    html += '<div class="slot-pos slot" data-sol-slot="0"><span class="slot-num">A</span><div class="slot-top"><span class="ph"></span></div></div>';
+    html += '<span class="diag-arrow">→</span>';
+    html += '<div class="diag-box dmz"><div class="db-ico">'+ic("servidorweb")+'</div><div class="db-label">Servidor Web</div><div class="db-label" style="color:var(--violeta);letter-spacing:2px;font-size:10px">ZONA DMZ</div></div>';
+    html += '</div>';
+    html += '<div class="diagram-row" style="flex-wrap:nowrap">';
+    html += '<div class="slot-pos slot" data-sol-slot="1"><span class="slot-num">B</span><div class="slot-top"><span class="ph"></span></div></div>';
+    html += '<span class="diag-arrow">→</span>';
+    html += '<div class="diag-box"><div class="db-ico" style="color:var(--verde)">'+ic("pcs")+'</div><div class="db-label">Red interna</div></div>';
+    html += '</div></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function llenarDndSolucion(z){
+  const tk = currentTicket();
+  if(!tk) return;
+  const tipo = z.dataset.dndSol;
+  let correctos = [];
+  if(tipo==="osi") correctos = tk.ordenCorrecto.map(x=>({id:x, t:x}));
+  else if(tipo==="ranking") correctos = tk.ordenCorrecto.map(id => tk.elementos.find(e=>e.id===id));
+  else if(tipo==="firewall") correctos = [
+    tk.elementos.find(e=>e.id==="firewall"),
+    tk.elementos.find(e=>e.id==="gateway")
+  ];
+  const slots = z.querySelectorAll(".slot[data-sol-slot]");
+  slots.forEach((s, i)=>{
+    const ph = s.querySelector(".ph");
+    if(ph && correctos[i]){
+      ph.innerHTML = renderItem(correctos[i]);
+      const nodo = ph.querySelector(".dnd-item");
+      if(nodo){ nodo.setAttribute("draggable","false"); nodo.style.pointerEvents="none"; }
+      s.style.borderColor = "var(--verde)";
+      s.style.borderStyle = "solid";
+    }
+  });
+}
+
+/* ---------------- Construcción de la zona de resolución ---------------- */
+function construirZonaResolucion(t, faseIdx, tickIdx){
+  const base = armadoInteraccion(t, { bloqueado:false });
+  const fb = '<div id="feedback" class="feedback"></div>';
+  return {
+    html: base + fb,
+    onMount(z){
+      if(z.querySelector("[data-dnd]")){ initDndRuntime(z); bindVerificar(z, t); }
+      else if(z.querySelector("[data-consola]")){ replayConsolaIn(z); bindConsola(z); bindVerificar(z, t); }
+      else { bindVerificar(z, t); }
+    }
+  };
+}
+
+function armadoInteraccion(t, opts){
+  const bloqueado = opts.bloqueado;
+  const sinVerificar = opts.sinVerificar;
+  let html="";
+  switch(t.tipo){
+    case "opciones-con-icono":
+    case "diagrama":
+    case "consola":
+    case "opciones":
+      html += '<p class="pregunta-lead"><b>'+esc(t.pregunta)+'</b></p>';
+      break;
+  }
+
+  if(t.tipo==="opciones-con-icono" || t.tipo==="diagrama"){
+    if(t.tipo==="diagrama") html += diagramaEstrella();
+    html += opcionesHTML(t.opciones, t.tipo==="opciones-con-icono", bloqueado ? t.correcta : null);
+  }
+  else if(t.tipo==="consola"){
+    html += '<div class="console" data-consola><div class="console-header">';
+    html += '<span class="ch-dot" style="background:#ff5a5f"></span><span class="ch-dot" style="background:#ffd166"></span><span class="ch-dot" style="background:#43d17c"></span>';
+    html += '<span class="ch-title">'+esc(t.comando)+'</span>';
+    if(!sinVerificar){
+      html += '<button type="button" class="ch-replay">↻ Repetir salida</button><button type="button" class="ch-instant">⏩ Mostrar todo</button>';
+    }
+    html += '</div><div class="console-body" data-console-body></div></div>';
+    html += opcionesHTML(t.opciones, false, bloqueado ? t.correcta : null);
+  }
+  else if(t.tipo==="osi"){
+    html += '<div data-dnd="osi">'+
+      '<div class="dnd-wrap"><div class="dnd-layout">'+
+      '<div class="dnd-pool"><h5>Elementos · capas del modelo OSI</h5><div class="dnd-items" data-dnd-pool></div>'+
+      '<p class="ph" style="font-size:11.5px;margin:10px 0 0;color:var(--t-3)">Arrastrá o tocá una capa y luego tocá un slot para ubicarla.</p></div>'+
+      '<div class="dnd-slots"><h5>Modelo OSI (de superior a inferior)</h5><div class="slots" data-dnd-slots></div></div>'+
+      '</div></div></div>';
+    if(!sinVerificar){
+      html += '<div class="acciones-btn" style="margin-top:6px">'+
+        '<button type="button" class="btn btn-ghost" data-acc="limpiar-osi">Limpiar</button>'+
+        '</div>';
+    }
+  }
+  else if(t.tipo==="firewall"){
+    html += diagramaFirewall();
+  }
+  else if(t.tipo==="ranking"){
+    html += '<p class="pregunta-lead" style="margin-bottom:4px">Arrastrá cada opción a la posición que corresponda. '+esc(t.criterio)+'</p>';
+    html += '<div data-dnd="ranking">'+
+      '<div class="dnd-wrap"><div class="dnd-layout">'+
+      '<div class="dnd-pool"><h5>Opciones de enlace</h5><div class="dnd-items" data-dnd-pool></div></div>'+
+      '<div class="dnd-slots"><h5>Ranking 1..6</h5>'+
+      '<p style="font-size:11px;color:var(--t-3);margin:0 0 8px">1 = más conveniente · 6 = menos conveniente</p>'+
+      '<div class="slots" data-dnd-slots></div></div>'+
+      '</div></div></div>';
+    if(!sinVerificar){
+      html += '<div class="acciones-btn" style="margin-top:6px">'+
+        '<button type="button" class="btn btn-ghost" data-acc="limpiar-osi">Limpiar</button>'+
+        '</div>';
+    }
+  }
+
+  if(!sinVerificar && ["opciones-con-icono","diagrama","opciones","osi","firewall","ranking","consola"].includes(t.tipo)){
+    html += '<div class="acciones-btn" style="margin-top:14px"><button type="button" id="btn-verificar" class="btn btn-primary">Verificar respuesta</button></div>';
+  }
+  return html;
+}
+
+/* ---- opciones múltiples ---- */
+function opcionesHTML(opciones, conIcono, correctaId){
+  const cls = conIcono ? "options-list" : "options-list plain";
+  let html = '<div class="'+cls+'" data-opciones>';
+  opciones.forEach(o=>{
+    let estado = "";
+    if(correctaId){ estado = o.id===correctaId ? " correct":" locked"; }
+    html += '<button type="button" class="option'+estado+'" data-opt="'+o.id+'"'+(correctaId?" disabled":"")+'>';
+    if(conIcono){ html += '<span class="opt-icon">'+ic(o.icono)+'</span><span>'+esc(o.t)+'</span>'; }
+    else{
+      html += '<span class="opt-radio" aria-hidden="true"></span>';
+      html += '<span>'+esc(o.t)+'</span>';
+    }
+    html += '</button>';
+  });
+  html += '</div>';
+  return html;
+}
+
+/* ---- diagrama estrella (1.2) ---- */
+function diagramaEstrella(){
+  const cx=200, cy=150, r=100, n=6;
+  let svg='<div class="diagrama-topo"><svg viewBox="0 0 400 300" width="400" height="300" role="img" aria-label="Diagrama de topología de red">';
+  const pcPos=[];
+  for(let i=0;i<n;i++){
+    const a = -Math.PI/2 + i*(2*Math.PI/n);
+    const x = cx + r*Math.cos(a), y = cy + r*Math.sin(a);
+    pcPos.push({x,y,label:"PC-0"+(i+1)});
+    svg += '<line class="linea" x1="'+cx+'" y1="'+cy+'" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
+  }
+  svg += '<rect class="nodo" x="178" y="128" width="44" height="44" rx="8"/>';
+  svg += '<text class="etq" x="200" y="149" text-anchor="middle" style="font-size:10px">SW</text>';
+  svg += '<text class="etq" x="200" y="193" text-anchor="middle">Switch central</text>';
+  pcPos.forEach(p=>{
+    let dx=0, dy=0;
+    const off = p.x < cx ? 22 : -22;
+    svg += '<rect class="nodo-pc" x="'+(p.x-18+off).toFixed(1)+'" y="'+(p.y-18+off).toFixed(1)+'" width="36" height="36" rx="6"/>';
+    svg += '<text class="nodo-pc-txt" x="'+(p.x+off).toFixed(1)+'" y="'+(p.y+off+4).toFixed(1)+'" text-anchor="middle" fill="#9fb1d4" font-family="var(--mono)" font-size="9px">'+p.label+'</text>';
+  });
+  svg += '</svg></div>';
+  return svg;
+}
+
+/* ---- diagrama firewall (3.1) ---- */
+function diagramaFirewall(){
+  let html = '<div data-dnd="firewall">';
+  html += '<div class="dnd-diagram">';
+  /* fila superior: Internet → slot A → DMZ */
+  html += '<div class="diagram-row" style="flex-wrap:nowrap">';
+  html += '<div class="diag-box"><div class="db-ico" style="color:var(--celeste)">'+ic("nube")+'</div><div class="db-label">Internet</div></div>';
+  html += '<span class="diag-arrow">→</span>';
+  html += '<div class="slot-pos slot" data-dnd-slot="0"><span class="slot-num">A</span><span class="ph">Arrastrá el dispositivo aquí</span></div>';
+  html += '<span class="diag-arrow">→</span>';
+  html += '<div class="diag-box dmz"><div class="db-ico">'+ic("servidorweb")+'</div><div class="db-label">Servidor Web</div>';
+  html += '<div class="db-label" style="color:var(--violeta);letter-spacing:2px;font-size:10px">ZONA DMZ</div></div>';
+  html += '</div>';
+  /* fila inferior: slot B → red interna */
+  html += '<div class="diagram-row" style="flex-wrap:nowrap">';
+  html += '<div class="slot-pos slot" data-dnd-slot="1"><span class="slot-num">B</span><span class="ph">Arrastrá el dispositivo aquí</span></div>';
+  html += '<span class="diag-arrow">→</span>';
+  html += '<div class="diag-box"><div class="db-ico" style="color:var(--verde)">'+ic("pcs")+'</div><div class="db-label">Red interna</div></div>';
+  html += '</div>';
+  html += '</div>';
+
+  html += '<div class="dnd-pool" style="margin-top:14px"><h5>Dispositivos disponibles</h5><div class="dnd-items" data-dnd-pool></div>';
+  html += '<p class="ph" style="font-size:11.5px;margin:10px 0 0;color:var(--t-3)">La DMZ ya está representada como zona. Arrastrá Firewall y Gateway a los espacios A y B del esquema.</p>';
+  html += '</div></div>';
+  return html;
+}
+
+/* ---------------- LÓGICA DND ---------------- */
+let DND = null; // estado activo del DnD actual: { tipo, slots, bloqueado, reiniciar }
+
+function renderItem(it){
+  let h = '<div class="dnd-item" data-item="'+esc(it.id)+'" draggable="true">';
+  if(it.icono){ h += ic(it.icono); }
+  h += '<span>'+esc(it.t)+'</span></div>';
+  return h;
+}
+
+function initDndRuntime(zona){
+  const root = zona.querySelector("[data-dnd]");
+  if(!root) return;
+  const tipo = root.dataset.dnd;
+  const tk = currentTicket();
+  if(!tk) return;
+
+  let items, slots;
+  if(tipo==="osi"){
+    items = tk.capas.map(c=>({id:c, t:c})).slice().sort(()=>Math.random()-0.5);
+    slots = [null,null,null,null,null,null,null]; // 0 = slot 7 (arriba)
+  }else if(tipo==="ranking"){
+    items = tk.elementos.map(e=>({id:e.id, t:e.t, icono:e.icono}));
+    slots = [null,null,null,null,null,null];
+  }else if(tipo==="firewall"){
+    items = tk.elementos.map(e=>({id:e.id, t:e.t, icono:e.icono}));
+    slots = [null,null];
+  }else{
+    return;
+  }
+
+  const poolEl = root.querySelector("[data-dnd-pool]");
+  const slotsEl = root.querySelector("[data-dnd-slots]");
+
+  // Construir slots (OSI/ranking). Firewall ya trae sus slots en el diagrama.
+  if(tipo==="osi" || tipo==="ranking"){
+    const total = tipo==="osi" ? 7 : 6;
+    let inner="";
+    for(let i=0;i<total;i++){
+      const num = tipo==="osi" ? (7-i) : (i+1);
+      const etiqueta = tipo==="osi"
+        ? (i===0 ? "Capa superior (7)" : i===6 ? "Capa inferior (1)" : "")
+        : (i===0 ? "Más conveniente" : i===5 ? "Menos conveniente" : "");
+      inner += '<div class="slot" data-dnd-slot="'+i+'"><span class="slot-num">'+num+'</span><div class="slot-top"><span class="ph"></span>'+(etiqueta ? '<span class="slot-etq">'+etiqueta+'</span>' : '')+'</div></div>';
+    }
+    slotsEl.innerHTML = inner;
+  }
+  const slotList = root.querySelectorAll(".slot[data-dnd-slot]");
+
+  function updatePool(){ poolEl.innerHTML = items.map(renderItem).join(""); }
+  function updateSlots(){
+    slotList.forEach((slotEl,i)=>{
+      const ph = slotEl.querySelector(".ph");
+      if(!ph) return;
+      ph.innerHTML = slots[i] ? renderItem(slots[i]) : "Arrastrá el elemento aquí";
+    });
+  }
+
+  function moverA(idx, id){
+    let it = null;
+    const ocupaIdx = slots.findIndex(x=>x && x.id===id);
+    if(ocupaIdx>=0){ it = slots[ocupaIdx]; slots[ocupaIdx]=null; }
+    else{
+      const pi = items.findIndex(x=>x.id===id);
+      if(pi>=0){ it = items[pi]; items.splice(pi,1); }
+      else return;
+    }
+    if(slots[idx]) items.push(slots[idx]); // el ocupante vuelve al pool
+    slots[idx] = it;
+    updatePool(); updateSlots();
+  }
+
+  DND = {
+    tipo: tipo,
+    slots: slots,
+    bloqueado: false,
+    reiniciar(){
+      for(let i=0;i<slots.length;i++){
+        if(slots[i]) items.push(slots[i]);
+        slots[i]=null;
+      }
+      updatePool(); updateSlots();
+    }
+  };
+
+  // Delegación en el root: persiste aunque se re-renderice el contenido interno.
+  root.addEventListener("dragstart", e=>{
+    const it = e.target.closest(".dnd-item");
+    if(!it) return;
+    e.dataTransfer.setData("text/plain", it.dataset.item);
+  });
+  root.addEventListener("dragend", ()=>{});
+  root.addEventListener("dragover", e=>{
+    const slotEl = e.target.closest(".slot[data-dnd-slot]");
+    if(!slotEl || DND.bloqueado) return;
+    e.preventDefault();
+    slotEl.classList.add("drag-over");
+  });
+  root.addEventListener("dragleave", ()=>{});
+  root.addEventListener("drop", e=>{
+    const slotEl = e.target.closest(".slot[data-dnd-slot]");
+    if(!slotEl || DND.bloqueado) return;
+    e.preventDefault();
+    slotEl.classList.remove("drag-over");
+    const id = e.dataTransfer && e.dataTransfer.getData("text/plain");
+    if(id) moverA(parseInt(slotEl.dataset.dndSlot,10), id);
+  });
+  // Click: item en un slot → vuelve al pool; item en el pool → se selecciona;
+  // click en un slot vacío → coloca el item seleccionado.
+  root.addEventListener("click", e=>{
+    if(DND.bloqueado) return;
+    const item = e.target.closest(".dnd-item");
+    const slotEl = e.target.closest(".slot[data-dnd-slot]");
+    if(item){
+      const contSlot = item.closest(".slot[data-dnd-slot]");
+      if(contSlot){
+        const idx = parseInt(contSlot.dataset.dndSlot,10);
+        if(slots[idx]){ items.push(slots[idx]); slots[idx]=null; updatePool(); updateSlots(); }
+      }else{
+        poolEl.querySelectorAll(".dnd-item.selmod").forEach(x=>x.classList.remove("selmod"));
+        item.classList.add("selmod");
+      }
+      return;
+    }
+    if(slotEl){
+      const sel = poolEl.querySelector(".dnd-item.selmod");
+      if(sel) moverA(parseInt(slotEl.dataset.dndSlot,10), sel.dataset.item);
+    }
+  });
+
+  updatePool(); updateSlots();
+}
+
+/* ============================================================
+   Verificación de respuestas
+   ============================================================ */
+function opcionSeleccionada(zona){
+  const sel = zona.querySelector(".option.selected");
+  return sel ? sel.dataset.opt : null;
+}
+function opcionesContenedor(zona){ return zona.querySelector("[data-opciones]"); }
+
+function bindVerificar(zona, t){
+  // selección simple
+  const opts = opcionesContenedor(zona);
+  if(opts){
+    $$(".option", opts).forEach(o=>{
+      o.addEventListener("click", ()=>{
+        $$(".option", opts).forEach(x=>x.classList.remove("selected"));
+        o.classList.add("selected");
+      });
+    });
+  }
+  const btn = $("#btn-verificar", zona);
+  if(btn){ btn.addEventListener("click", ()=> verificar(zona, t)); }
+  // botones de limpiar de DnD
+  $$("[data-acc=limpiar-osi]", zona).forEach(b=>{
+    b.addEventListener("click", ()=>{
+      if(DND && DND.tipo && DND.reiniciar) DND.reiniciar();
+    });
+  });
+}
+
+function resultadoDNDVacio(t){
+  const meta = findTicketMeta(t.id);
+  const tk = getTicket(meta.faseIdx, meta.tickIdx);
+  let total=0;
+  if(t.tipo==="osi") total=7;
+  else if(t.tipo==="ranking") total=6;
+  else if(t.tipo==="firewall") total=2;
+  const llenos = (DND && DND.slots)? DND.slots.filter(Boolean).length : 0;
+  return llenos!==total;
+}
+
+function calcularCorrecto(t){
+  const meta = findTicketMeta(t.id);
+  const tk = getTicket(meta.faseIdx, meta.tickIdx);
+  if(t.tipo==="opciones-con-icono" || t.tipo==="diagrama" || t.tipo==="opciones" || t.tipo==="consola"){
+    return opcionSeleccionada(zonaRes)===t.correcta;
+  }
+  if(t.tipo==="osi"){
+    if(!DND || DND.tipo!=="osi") return false;
+    for(let i=0;i<7;i++){ if(!DND.slots[i] || DND.slots[i].id!==tk.ordenCorrecto[i]) return false; }
+    return true;
+  }
+  if(t.tipo==="ranking"){
+    if(!DND || DND.tipo!=="ranking") return false;
+    for(let i=0;i<6;i++){ if(!DND.slots[i] || DND.slots[i].id!==tk.ordenCorrecto[i]) return false; }
+    return true;
+  }
+  if(t.tipo==="firewall"){
+    if(!DND || DND.tipo!=="firewall") return false;
+    const esperado = ["firewall","gateway"];
+    for(let i=0;i<2;i++){ if(!DND.slots[i] || DND.slots[i].id!==esperado[i]) return false; }
+    return true;
+  }
+  return false;
+}
+
+let zonaRes = null;
+function verificar(zonaIn, t){
+  zonaRes = zonaIn || $(".detalle #zona-resolucion");
+  // Un ticket correcto ya no se vuelve a verificar; uno "fallado"
+  // sí puede reintentarse hasta responderlo bien.
+  if(estadoTicket(t.id)==="resuelto") return;
+
+  // NO permite verificar DnD incompleto
+  const esDnd = t.tipo==="osi" || t.tipo==="ranking" || t.tipo==="firewall";
+  if(esDnd && resultadoDNDVacio(t)){
+    toast("Completá el esquema todos los slots antes de verificar.");
+    return;
+  }
+  const esOpcion = ["opciones-con-icono","diagrama","opciones","consola"].includes(t.tipo);
+  if(esOpcion && !opcionSeleccionada(zonaRes)){
+    toast("Seleccioná una opción antes de verificar.");
+    return;
+  }
+
+  const correcto = calcularCorrecto(t);
+
+  // Solo navegamos al resumen si esta respuesta COMPLETA la fase por
+  // primera vez (evita saltar al resumen al reintentar un fallado).
+  const { faseIdx } = findTicketMeta(t.id);
+  const faseCompletaAhora = faseRespondida(faseIdx);
+
+  // Marcar estado
+  setEstado(t.id, correcto ? "resuelto":"fallado");
+
+  const fb = zonaRes ? $("#feedback", zonaRes) : null;
+  const fbCls = correcto ? "ok":"ko";
+  const fbTitulo = correcto ? "✓ Correcto":"✗ Incorrecto";
+
+  // congelar interacción
+  congelarInteraccion(zonaRes, t, correcto);
+
+  // feedback (con opción de reintentar si quedó fallado)
+  let fbHtml = '<div class="fb-t">'+fbTitulo+'</div><div>'+esc(correcto?t.fbOk:t.fbKo)+'</div>';
+  if(fb){
+    fb.className = "feedback show "+fbCls;
+    fb.innerHTML = fbHtml;
+    fb.setAttribute("aria-live","polite");
+    if(!correcto){
+      const divAcc = document.createElement("div");
+      divAcc.className = "fb-acciones";
+      const btnR = document.createElement("button");
+      btnR.type = "button";
+      btnR.className = "btn btn-primary";
+      btnR.setAttribute("data-acc","reintentar");
+      btnR.textContent = "↻ Reintentar";
+      divAcc.appendChild(btnR);
+      fb.appendChild(divAcc);
+      btnR.addEventListener("click", ()=> reintentarTicket(t.id));
+    }
+  }
+
+  // habilitar siguiente
+  const sig = $("#btn-siguiente");
+  if(sig) sig.disabled = false;
+
+  // actualizar estados en cola y dashboard
+  if(!faseCompletaAhora && faseRespondida(faseIdx)){
+    if(faseIdx===FASES.length-1){
+      setTimeout(()=>{ irResumen(); }, 1300);
+      toast(faseCompleta(faseIdx)?"Fase 3 completada → Resumen":"Turno cerrado → Resumen final");
+      return;
+    }
+  }
+  toast(correcto ? "✓ Ticket resuelto con éxito":"Respuesta incorrecta — podés reintentarla hasta acertarla.");
+}
+
+function reintentarTicket(tid){
+  // Recarga la zona de resolución del ticket fallado sin revelar
+  // la solución y mantiene las pistas ya consumidas para ese ticket.
+  const { faseIdx, tickIdx } = findTicketMeta(tid);
+  const t = getTicket(faseIdx, tickIdx);
+  const zona = $("#zona-resolucion");
+  if(!zona) return;
+  const zra = construirZonaResolucion(t, faseIdx, tickIdx);
+  zona.innerHTML = zra.html;
+  zra.onMount(zona, false);
+  const spieg = $("#btn-siguiente");
+  if(spieg) spieg.disabled = false;
+  toast("Ticket reintentado: respondelo de nuevo.");
+}
+
+function congelarInteraccion(zona, t, correcto){
+  const opts = opcionesContenedor(zona);
+  if(opts){
+    $$(".option", opts).forEach(o=>{
+      o.setAttribute("disabled","true");
+      o.classList.add("locked");
+      if(o.dataset.opt===t.correcta) o.classList.add("correct");
+      if(o.dataset.opt===opcionSeleccionada(zona)){ if(!correcto) o.classList.add("wrong"); }
+    });
+  }
+  // deshabilitar verificar
+  const b = $("#btn-verificar", zona);
+  if(b) b.disabled = true;
+  // bloquear DnD
+  if(DND) DND.bloqueado = true;
+  $$(".dnd-item", zona).forEach(i=>i.setAttribute("draggable","false"));
+  // marcar slots correctos en ranking/osi
+  if(DND){
+    const tk = (()=>{ const m=findTicketMeta(ticketActual); return getTicket(m.faseIdx, m.tickIdx); })();
+    const slotEls = zona.querySelectorAll(".slot[data-dnd-slot]");
+    if(DND.tipo==="osi"){
+      slotEls.forEach((s,i)=>{ if(DND.slots[i] && DND.slots[i].id===tk.ordenCorrecto[i]) s.style.borderColor="var(--verde)"; });
+    }else if(DND.tipo==="ranking"){
+      slotEls.forEach((s,i)=>{ if(DND.slots[i] && DND.slots[i].id===tk.ordenCorrecto[i]) s.style.borderColor="var(--verde)"; });
+    }else if(DND.tipo==="firewall"){
+      const esp=["firewall","gateway"];
+      slotEls.forEach((s,i)=>{ if(DND.slots[i] && DND.slots[i].id===esp[i]) s.style.borderColor="var(--verde)"; });
+    }
+  }
+}
+
+/* ============================================================
+   Consola simulada (typewriter)
+   ============================================================ */
+let consolaToken = 0;
+function limpiarConsolaTimers(){ consolaToken++; }
+
+function replayConsolaIn(zona){
+  const body = zona.querySelector("[data-console-body]");
+  const t = currentTicket();
+  if(!body || !t) return;
+  tipearConsola(body, t);
+}
+
+function tipearConsola(body, t){
+  const token = ++consolaToken;
+  const salida = t.salida || [];
+  let li = 0, ci = 0;
+  (function paso(){
+    if(token !== consolaToken) return;
+    let txt = salida.slice(0, li).join("\n");
+    if(li < salida.length){
+      if(li>0) txt += "\n";
+      txt += salida[li].slice(0, ci);
+    }
+    body.innerHTML = "";
+    const span = document.createElement("span");
+    span.textContent = txt;
+    body.appendChild(span);
+    const cur = document.createElement("span");
+    cur.className = "c-cursor";
+    body.appendChild(cur);
+    body.scrollTop = body.scrollHeight;
+    if(li >= salida.length) return;
+    ci += 3;
+    if(ci >= salida[li].length){ li++; ci = 0; setTimeout(paso, 55); }
+    else setTimeout(paso, 8);
+  })();
+}
+
+function bindConsola(zona){
+  const t = currentTicket();
+  if(!t) return;
+  const body = zona.querySelector("[data-console-body]");
+  const replay = zona.querySelector(".ch-replay");
+  const instant = zona.querySelector(".ch-instant");
+  if(replay) replay.addEventListener("click", ()=>{ if(body) tipearConsola(body, t); });
+  if(instant) instant.addEventListener("click", ()=>{ consolaToken++; if(body) body.textContent = armarSalida(t); });
+}
+
+function currentTicket(){
+  if(!ticketActual) return null;
+  const m = findTicketMeta(ticketActual);
+  if(m.faseIdx<0) return null;
+  return getTicket(m.faseIdx, m.tickIdx);
+}
+
+/* ============================================================
+   ASISTENTE IA (Copiloto NOC)
+   ============================================================ */
+const fabButton = $("#fab-asistente");
+const panel = $("#panel-asistente");
+
+// estado de pistas por ticket (se resetea al abrir un ticket nuevo)
+let pistasPorTicket = {};          // {id: cantidadEntregadas}
+let pistasAgotadasPorTicket = {};  // {id: true cuando se mostró el aviso final}
+let asisAbierto = false;
+
+function resetAsistenteTicket(){
+  pistasPorTicket[ticketActual] = 0;
+  pistasAgotadasPorTicket[ticketActual] = false;
+  cerrarAsistente();
+}
+function pistasUsadas(){ return pistasPorTicket[ticketActual] || 0; }
+function pistasRestantesTicket(){
+  const t = currentTicket(); if(!t) return 0;
+  return Math.max(0, 2 - pistasUsadas());
+}
+function tokensAgotados(){ return !!(pistasAgotadasPorTicket[ticketActual]); }
+function actualizarBannerAsistente(){
+  const t = currentTicket();
+  if(!t){ fabButton.classList.add("dormido"); return; }
+  fabButton.classList.remove("dormido");
+}
+
+fabButton.addEventListener("click", ()=>{
+  if(vistaActual!=="fase" || !ticketActual) return;
+  abrirAsistente();
+});
+
+function abrirAsistente(){
+  if(!ticketActual) return;
+  const t = currentTicket();
+  asisAbierto = true;
+  panel.classList.remove("hidden");
+  fabButton.hidden = true;
+  if(!$("#chat-cuerpo")){
+    panel.innerHTML = construirPanelAsistente();
+  }
+  const cuerpo = $("#chat-cuerpo");
+  if(!tieneMensajes(cuerpo)){
+    agregarMsgAsistente("Estás en el ticket #"+t.id+" · “"+t.asunto+"”. ¿En qué te ayudo? Podés escribir tu pregunta o usar el botón de pista.");
+  }
+  const inp = $("#chat-input");
+  const env = $("#chat-enviar");
+  if(inp) inp.disabled = tokensAgotados();
+  if(env) env.disabled = tokensAgotados();
+  actualizarTokenMeter();
+  actualizarQuick();
+  if(inp && !inp.disabled) inp.focus();
+}
+function cerrarAsistente(){
+  asisAbierto=false;
+  panel.classList.add("hidden");
+  if(vistaActual==="fase") fabButton.hidden = false;
+}
+function tieneMensajes(el){ return el && el.querySelectorAll(".msg,.msg-sys").length>0; }
+function construirPanelAsistente(){
+  const t = currentTicket();
+  return ''+
+  '<div class="assistant-head">'+
+    '<div class="a-ico">'+ic("robot")+'</div>'+
+    '<div class="a-tit"><b>Asistente IA</b><span id="asistente-subs">Copiloto NOC '+(t?"· Ticket #"+t.id:"")+'</span></div>'+
+    '<div class="token-meter" title="Tokens de pista disponibles">'+
+      '<span class="tm-label">Tokens</span><span class="tm-dots"><span class="tm-dot"></span><span class="tm-dot"></span></span>'+
+    '</div>'+
+    '<button class="a-btn" id="chat-min" aria-label="Minimizar">'+ic("minimizar")+'</button>'+
+    '<button class="a-btn" id="chat-cerrar" aria-label="Cerrar">'+ic("cerrar")+'</button>'+
+  '</div>'+
+  '<div class="assistant-body" id="chat-cuerpo" aria-live="polite"></div>'+
+  '<div class="assistant-composer">'+
+    '<button class="quick-hint" id="chat-pista">'+ic("bombilla")+' Necesito una pista</button>'+
+    '<div class="composer">'+
+      '<input id="chat-input" type="text" placeholder="Escribí tu pregunta..." autocomplete="off" />'+
+      '<button id="chat-enviar" aria-label="Enviar">'+ic("enviar")+'</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function horaAhora(){
+  const d=new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+function agregarMsgAsistente(texto, delay){
+  const cuerpo = $("#chat-cuerpo");
+  if(!cuerpo) return;
+  const cont = cuerpo;
+  if(delay){
+    const ind = document.createElement("div");
+    ind.className="msg msg-assist"; ind.innerHTML='<div class="burbuja"><span class="typing-ind"><i></i><i></i><i></i></span></div>';
+    cont.appendChild(ind); cont.scrollTop=cont.scrollHeight;
+    setTimeout(()=>{
+      ind.remove();
+      cont.appendChild(msgAsistenteHTML(texto));
+      cont.scrollTop=cont.scrollHeight;
+    }, delay);
+  }else{
+    cont.appendChild(msgAsistenteHTML(texto));
+    cont.scrollTop=cont.scrollHeight;
+  }
+}
+function msgAsistenteHTML(texto){
+  const d=document.createElement("div"); d.className="msg msg-assist";
+  const b=document.createElement("div"); b.className="burbuja"; b.textContent=texto;
+  const t=document.createElement("span"); t.className="t"; t.textContent=horaAhora();
+  d.appendChild(b); d.appendChild(t); return d;
+}
+function msgUsuarioHTML(texto){
+  const d=document.createElement("div"); d.className="msg msg-user";
+  const b=document.createElement("div"); b.className="burbuja"; b.textContent=texto;
+  const t=document.createElement("span"); t.className="t"; t.textContent=horaAhora();
+  d.appendChild(b); d.appendChild(t); return d;
+}
+function msgSistemaHTML(texto, rojo){
+  const d=document.createElement("div"); d.className="msg msg-sys";
+  const b=document.createElement("div"); b.className="sys-burbuja"+(rojo?" sys-rojo":"");
+  const i=document.createElement("span"); i.innerHTML=ic("alarma");
+  const x=document.createElement("span"); x.textContent=texto;
+  b.appendChild(i); b.appendChild(x); d.appendChild(b); return d;
+}
+
+function entregarPista(){
+  const t = currentTicket();
+  if(!t) return;
+  if(tokensAgotados()){
+    agregarMsgSistema("Se agotaron los tokens, no tienes más pistas.", true);
+    bloquearComposer();
+    return;
+  }
+  const usadas = pistasUsadas();
+  if(usadas>=2){
+    // Intentó consultar una tercera vez: se muestran los tokens agotados.
+    pistasAgotadasPorTicket[ticketActual] = true;
+    agregarMsgSistema("Se agotaron los tokens, no tienes más pistas.", true);
+    bloquearComposer();
+    actualizarQuick();
+    actualizarTokenMeter();
+    return;
+  }
+  const pista = t.pistas[usadas];
+  pistasPorTicket[ticketActual] = usadas+1;
+  agregarMsgAsistente("Pista "+(usadas+1)+": "+pista, 600);
+  if(usadas===0){
+    setTimeout(()=>{
+      agregarMsgSistema("Tienes pocos tokens: te queda una sola chance de consultar una pista.", false);
+    }, 2600);
+  }
+  actualizarTokenMeter();
+  actualizarQuick();
+}
+function agregarMsgSistema(texto, rojo){
+  const cuerpo=$("#chat-cuerpo"); if(!cuerpo) return;
+  cuerpo.appendChild(msgSistemaHTML(texto, rojo));
+  cuerpo.scrollTop=cuerpo.scrollHeight;
+}
+function bloquearComposer(){
+  const inp=$("#chat-input"); const env=$("#chat-enviar"); const q=$("#chat-pista");
+  if(inp) inp.disabled=true;
+  if(env) env.disabled=true;
+  if(q) q.disabled=true;
+  actualizarTokenMeter();
+}
+function actualizarTokenMeter(){
+  const dots=$$(".token-meter .tm-dot");
+  const rest=pistasRestantesTicket();
+  dots.forEach((d,i)=>{ d.classList.toggle("off", i>=rest); });
+}
+function actualizarQuick(){
+  const q=$("#chat-pista"); if(!q) return;
+  q.disabled = tokensAgotados();
+  q.innerHTML = ic("bombilla")+" Necesito una pista";
+  const svg=q.querySelector("svg");
+  if(svg) svg.style.pointerEvents="none";
+}
+
+// listeners del panel (delegación)
+document.addEventListener("click", e=>{
+  const target = e.target;
+  if(target.closest("#chat-min")){ cerrarAsistente(); return; }
+  if(target.closest("#chat-cerrar")){ cerrarAsistente(); return; }
+  if(target.closest("#chat-pista")){ entregarPista(); return; }
+  if(target.closest("#chat-enviar")){ const inp=$("#chat-input"); if(inp && !inp.disabled && inp.value.trim()) enviarMensaje(inp.value.trim()); return; }
+});
+document.addEventListener("keydown", e=>{
+  if(e.key==="Enter" && asisAbierto){
+    const inp=$("#chat-input");
+    if(inp && document.activeElement===inp && !inp.disabled && inp.value.trim()){
+      enviarMensaje(inp.value.trim());
+    }
+  }
+});
+function enviarMensaje(texto){
+  const cuerpo=$("#chat-cuerpo");
+  cuerpo.appendChild(msgUsuarioHTML(texto));
+  cuerpo.scrollTop=cuerpo.scrollHeight;
+  const inp=$("#chat-input"); if(inp){ inp.value=""; }
+  // cualquier mensaje dispara la siguiente pista
+  entregarPista();
+}
+
+/* ============================================================
+   RESUMEN FINAL
+   ============================================================ */
+function renderResumen(){
+  const vista = $("#view-resumen");
+  const todas = FASES.flatMap(f=>f.tickets);
+  const resueltas = todas.filter(t=>estadoTicket(t.id)==="resuelto");
+  const falladas = todas.filter(t=>estadoTicket(t.id)==="fallado");
+  const casoResuelto = falladas.length===0; // 0 fallidas = resuelto
+
+  let h = '<div class="resumen-head"><h2>Resumen final</h2><p>Resultados del recorrido de formación - NOC</p></div>';
+
+  h += '<div class="resumen-stamp-wrap">';
+  h += '<div class="stamp '+(casoResuelto?"resuelto":"incompleto")+'">'+(casoResuelto?"CASO RESUELTO":"CASO INCOMPLETO")+'</div>';
+  h += '<div class="resumen-grid">';
+
+  /* Columnas: preguntas completadas / falladas */
+  h += '<div class="col-chips"><h3>Preguntas completadas</h3>';
+  h += '<div class="contador-grande"><span class="ok-v">'+resueltas.length+'</span></div>';
+  if(resueltas.length){
+    h += '<div class="chip-flow">'+resueltas.map(t=>'<span class="chip chip-verde">'+t.id+'</span>').join("")+'</div>';
+  }else{
+    h += '<p style="color:var(--t-3);font-size:12.5px">No hay preguntas completadas todavía.</p>';
+  }
+  h += '</div>';
+
+  h += '<div class="col-chips"><h3>Preguntas falladas</h3>';
+  h += '<div class="contador-grande"><span class="ko-v">'+falladas.length+'</span></div>';
+  if(falladas.length){
+    h += '<div class="chip-flow">'+falladas.map(t=>'<span class="chip chip-rojo">'+t.id+'</span>').join("")+'</div>';
+  }else{
+    h += '<p style="color:var(--verde);font-size:12.5px">No hay preguntas falladas.</p>';
+  }
+  h += '</div>';
+
+  /* Tarjetas de fase */
+  h += '<div class="col-cards" style="grid-column:1/-1">';
+  FASES.forEach((fase, fi)=>{
+    const estadoFase = faseCompleta(fi) ? "ok" : (faseRespondida(fi) ? "inc" : "pend");
+    h += '<div class="estado-fase-card">';
+    h += '<div class="ef-ico f'+(fi+1)+'" style="background:var(--'+(estadoFase==="ok"?"verde-bg":estadoFase==="inc"?"ambar-bg":"gris-bg")+');color:var(--'+(estadoFase==="ok"?"verde":estadoFase==="inc"?"ambar":"t-3")+')">'+ic(estadoFase==="ok"?"check":estadoFase==="inc"?"alarma":"reloj")+'</div>';
+    h += '<div class="ef-txt"><h4>'+fase.nombre+' — '+esc(fase.turno)+': '+esc(fase.titulo)+'</h4>';
+    h += '<div class="ef-sub">'+(estadoFase==="ok"?"Completada":estadoFase==="inc"?"Incompleta — revisá los tickets fallados":"Pendiente")+'</div>';
+    h += '<div class="ef-detalle">';
+    fase.tickets.forEach(t=>{
+      const est=estadoTicket(t.id);
+      h += '<span class="chip '+ESTADO_CHIP[est]+'">'+t.id+' '+ESTADO_NOMBRE[est]+'</span>';
+    });
+    h += '</div></div>';
+    h += '<span class="chip '+(estadoFase==="ok"?"chip-verde":estadoFase==="inc"?"chip-ambar":"chip-gris")+'">'+(estadoFase==="ok"?"Completada":estadoFase==="inc"?"Incompleta":"Pendiente")+'</span>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  h += '</div></div>'; // resumen-grid + stamp-wrap
+
+  h += '<div class="resumen-acciones">';
+  h += '<button class="btn btn-ghost" data-r="inicio">'+ic("atras")+' Volver al inicio</button>';
+  h += '<button class="btn btn-primary" data-r="detalle">Ver detalle '+ic("adelante")+'</button>';
+  h += '</div>';
+
+  vista.innerHTML = h;
+  $$("[data-r]", vista).forEach(b=>{
+    b.addEventListener("click", ()=>{
+      if(b.dataset.r==="inicio") irInicio();
+      if(b.dataset.r==="detalle") toggleDetalleResumen(vista);
+    });
+  });
+}
+function toggleDetalleResumen(vista){
+  const cards = $("#view-resumen .estado-fase-card .ef-detalle");
+  // muestra / oculta la lista de tickets por fase
+  const visible = vista.dataset.detalle==="1";
+  if(!visible){
+    vista.dataset.detalle="1";
+    $$(".estado-fase-card .ef-detalle", vista).forEach(x=>x.style.display="flex");
+    toast("Mostrando detalle por ticket.");
+  }else{
+    vista.dataset.detalle="0";
+    $$(".estado-fase-card .ef-detalle", vista).forEach(x=>x.style.display="none");
+  }
+}
+
+/* ============================================================
+   SIDEBAR / NAV
+   ============================================================ */
+$$(".nav-item").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    const acc = b.dataset.accion;
+    if(acc==="inicio" || acc==="tickets"){ irInicio(); return; }
+    toast("Módulo en desarrollo — próximamente.");
+  });
+});
+
+/* ============================================================
+   LOGIN + NEURAL BACKGROUND
+   ============================================================ */
+function generarFondoNeural(){
+  const c = $("#neural-canvas");
+  const w = window.innerWidth, h = window.innerHeight;
+  const puntos=[];
+  const n = Math.min(90, Math.floor(w*h/14000));
+  for(let i=0;i<n;i++){
+    puntos.push({x:Math.random()*w, y:Math.random()*h, r:Math.random()*2.2+1});
+  }
+  let svg = '<svg viewBox="0 0 '+w+' '+h+'">';
+  const tresh = Math.min(w,h)*0.18;
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      const dx=puntos[i].x-puntos[j].x, dy=puntos[i].y-puntos[j].y;
+      if(dx*dx+dy*dy < tresh*tresh){
+        svg += '<line x1="'+puntos[i].x.toFixed(0)+'" y1="'+puntos[i].y.toFixed(0)+'" x2="'+puntos[j].x.toFixed(0)+'" y2="'+puntos[j].y.toFixed(0)+'"/>';
+      }
+    }
+  }
+  puntos.forEach(p=>{ svg += '<circle cx="'+p.x.toFixed(0)+'" cy="'+p.y.toFixed(0)+'" r="'+p.r.toFixed(1)+'"/>'; });
+  svg += '</svg>';
+  c.innerHTML = svg;
+}
+
+function aplicarUsuarioCabecera(){
+  const nombre = (usuario && usuario.trim()) ? usuario.trim() : "Alex";
+  const nomEl = $("#usuario-cabecera");
+  if(nomEl) nomEl.textContent = nombre;
+  const av = $("#avatar-cabecera");
+  if(av){
+    const iniciales = nombre.split(/\s+/).filter(Boolean).map(p=>p[0]).join("").slice(0,2).toUpperCase();
+    av.textContent = iniciales || "AR";
+  }
+}
+
+function iniciarLogin(){
+  const inp = $("#login-user");
+  const btn = $("#login-btn");
+  btn.addEventListener("click", ()=>{
+    const v = inp.value.trim();
+    usuario = v || "Alex";
+    aplicarUsuarioCabecera();
+    $("#pantalla-login").classList.add("hidden");
+    $("#app").classList.remove("hidden");
+    irInicio();
+  });
+  inp.addEventListener("keydown", e=>{ if(e.key==="Enter") btn.click(); });
+}
+
+/* ============================================================
+   ARRANQUE
+   ============================================================ */
+function prepararIconos(){
+  $$("[data-ic]").forEach(sp=>{ sp.innerHTML = ic(sp.dataset.ic); });
+  // logo hex
+  $$(".logo-hex").forEach(s=>{ s.style.color = "var(--celeste)"; });
+  // color del logo según fase activa
+  const logo = $("#logo-cabeza");
+  if(logo){
+    const update = ()=>{
+      let color="var(--celeste)";
+      if(vistaActual==="fase") color = "var(--"+(FASES[faseAbierta].colorVar)+")";
+      else if(vistaActual==="inicio"){
+        const enCurso = FASES.findIndex((f,i)=>faseDesbloqueada(i)&&!faseCompleta(i));
+        if(enCurso>=0) color="var(--"+(FASES[enCurso].colorVar)+")";
+      }
+      logo.style.color = color;
+    };
+    setInterval(update, 400);
+    update();
+  }
+}
+
+function init(){generarFondoNeural(); prepararIconos(); iniciarLogin();}
+
+window.addEventListener("resize", ()=>{ generarFondoNeural(); });
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

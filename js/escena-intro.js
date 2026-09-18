@@ -6,7 +6,7 @@
   var NARRATIVA = [
     "NEXUS Corp, una empresa con sede central y varias sucursales, amanece con sus servicios caídos: no se accede a archivos, la web no responde y las impresoras de la LAN no completan su trabajo.",
     "Como detective especializado en redes, recibís el expediente del caso. Tu misión: reconstruir la infraestructura, analizar el tráfico y descubrir quién o qué provocó el incidente.",
-    "Tenés tres fases de investigación. Cada decisión suma puntos, y las pistas tienen un costo. Cuando el caso esté resuelto, emitirás el informe final."
+    "Investigás tres fases con cuatro desafíos cada una. Contás con tres pistas por investigación, cada error resta puntos de tu marcador y, si no podés completar el caso, podés cerrar el expediente y aun así recibir el informe final con tu avance."
   ];
 
   function mostrar() {

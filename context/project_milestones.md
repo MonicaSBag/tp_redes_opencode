@@ -6,7 +6,7 @@ Desarrollar un juego educativo de redes informaticas, web y sin backend, donde e
 
 ## Estado actual
 
-**Fase actual:** Hitos 4 a 7 completados. Las tres fases tienen contenido completo (30 desafios), el informe final es rico en metricas/logros, hay intro narrativa, expediente, manejo de errores y accesibilidad basica. Siguiente: tester manual y pulido de UX.
+**Fase actual:** Hitos 1 a 7 completados (33/33 tareas). El flujo fue redisenado el 2026-09-14 segun las tarjetas de Trello/procesadas: contenido de 4 desafios por fase (12 total, formato incidente), respuesta unica por desafio, penalizaciones explicitas (+100/-50/-25 en el momento), maximo 3 pistas por sesion, avance directo entre fases (sin pantalla de cierre), informe sin logros, sin boton continuar/abandonar y con boton "Abandonar investigación". Detalle en `Documentacion/mejoras-2026-09-14.md` y `Documentacion/fact-check-2026-09-14.md`. Siguiente: tester manual y pulido de UX.
 
 ## Seguimiento de tareas
 
@@ -67,9 +67,21 @@ Desarrollar un juego educativo de redes informaticas, web y sin backend, donde e
 - [x] T-32 Logging de errores: `js/errores.js` con `error` y `unhandledrejection` + aviso amigable.
 - [x] T-33 Anti-trampas: respuestas correctas jamas van al DOM ni a consola; se comparan en runtime.
 
+## Rediseno 2026-09-14 (tarjetas Trello)
+
+Cambios aplicados sobre el contenido v3 (30 desafios) por las tarjetas procesadas en `Documentacion/mejoras-2026-09-14.md`:
+
+- **Contenido v4**: 4 desafios por fase (12 total) con enunciados en formato incidente; la reconstruccion (f1-01) suma iconos y verificacion por grupos (los PCs del mismo segmento son intercambiables).
+- **Puntaje**: correcta +100, incorrecta -50, pista -25 (se aplica al usarla, no al final); piso en 0. Se elimino `Puntaje.puntosPorDesafio`.
+- **Pistas**: maximo 3 por sesion (`Pistas.LIMITE_PISTAS`); `tomar()` devuelve `null` al agotarse.
+- **Respuesta unica**: al fallar se descuentan puntos, se revela la respuesta correcta y se continua sin permitir re-elegir (ninguna tarjeta fuerza a gastar pistas para feedback).
+- **Sin cierre por fase**: avance directo a la siguiente; informe solo al terminar/abandonar. Se eliminaron `js/escena-cierre.js` y `js/logros.js` y la escena `cierre`.
+- **Menu**: sin boton "Continuar" ni resumen de sesion; se agrego "Abandonar la investigación" (`EscenaJuego.abandonarInvestigacion()`).
+- **Informe**: sin seccion de logros; metricas: fases resueltas, correctas, pistas `N/3`, puntaje y rango.
+
 ## Notas
 
-- Flujo completo: menu → expediente → intro (Nueva investigación) → fase 1 (10) → cierre → fase 2 (10) → cierre → fase 3 (10) → cierre → informe final (metricas + desglose + logros + rango).
+- Flujo actual: menu → expediente → intro (Nueva investigación) → fase 1 (4) → fase 2 (4) → fase 3 (4) → informe final (metricas + desglose + rango); "Abandonar la investigación" lleva al informe con el progreso parcial.
 - Todos los tipos de desafio: `opcion_multiple`, `evidencias`, `reconstruccion` y `contencion`.
-- Los tests de integracion (`node tests/test-flujo.js`) recorren el juego completo y verifican intro, logros, informe y manejo de errores.
+- Los tests de integracion (`node tests/test-flujo.js`) recorren el juego completo (12 desafios, puntaje maximo 1200, limite de pistas, respuesta incorrecta y abandono) y verifican informe y manejo de errores.
 - WCAG AA completo (contraste, navegacion) queda como auditoria final pendiente de revision con tester real.

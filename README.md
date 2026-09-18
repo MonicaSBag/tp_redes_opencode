@@ -2,9 +2,9 @@
 
 Juego educativo interactivo en el que el jugador asume el rol de un detective especializado en redes informáticas. La empresa ficticia **NEXUS Corp** sufrió un incidente que provocó fallas en su infraestructura y el jugador deberá investigarlo a través de tres fases de dificultad creciente:
 
-1. **Fase 1 - La escena del crimen**: reconstruir la infraestructura de red (Hub, Switch, Router, Gateway, VLAN, LAN/WAN, Topologías).
-2. **Fase 2 - Siguiendo las pistas**: analizar el comportamiento de la red (TCP/IP, Flags, DHCP, DNS, ARP, NetBIOS, Modelo OSI).
-3. **Fase 3 - El ataque**: identificar el origen del incidente y contenerlo (Firewall, DMZ, VPN, OSPF, Spanning Tree, Wireless).
+1. **Fase 1 - La escena del crimen**: reconstruir la infraestructura de red (Router, Switch, Gateway, segmentos), y comprender el rol del Hub frente al Switch (MAC) y las VLAN.
+2. **Fase 2 - Siguiendo las pistas**: analizar el comportamiento de la red (Handshake TCP, DNS, DHCP, puertos y servicios como HTTP/SMB/LDAP, reconocimiento de tráfico anómalo).
+3. **Fase 3 - El ataque**: identificar el vector del incidente (RDP/3389 expuesto) y contenerlo (Firewall, DMZ, VPN, mínimo privilegio).
 
 La documentación completa está en la carpeta `Documentacion/` junto con el documento de requisitos.
 
@@ -13,21 +13,19 @@ La documentación completa está en la carpeta `Documentacion/` junto con el doc
 ```
 Detective de Redes/
 ├── CONTEXT.md                  # Contexto y bitácora de sesiones para agentes de IA
-├── index.html                  # Punto de entrada (perfiles: menu, intro, juego, cierre, informe)
+├── index.html                  # Punto de entrada (perfiles: menu, intro, juego, informe)
 ├── css/
 │   └── estilos.css             # Tema "detective" con variables CSS y componentes
 ├── js/
 │   ├── contenido.js            # Contenido educativo (window.CONTENIDO)
 │   ├── gestor-escenas.js       # (data/) Navegacion entre pantallas
-│   ├── puntaje.js              # Puntos, penalizacion por pista y rangos
+│   ├── puntaje.js              # Puntos, penalizaciones y rangos
 │   ├── progreso.js             # Guardado en localStorage
-│   ├── pistas.js               # Pistas por desafio
+│   ├── pistas.js               # Pistas por desafio (maximo 3 por sesion)
 │   ├── errores.js              # Manejo global de errores
 │   ├── motor.js                # Motor: renderizado y validacion de desafios
-│   ├── logros.js               # Logros derivados de las estadisticas
 │   ├── escena-intro.js         # Intro narrativa del caso NEXUS
 │   ├── escena-juego.js         # Flujo de juego y avance de fases
-│   ├── escena-cierre.js        # Cierre narrativo de fase
 │   ├── escena-informe.js       # Informe final
 │   ├── menu.js                 # Menu, expediente y tablero de avance
 │   └── main.js                 # Arranque

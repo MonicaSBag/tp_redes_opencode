@@ -1,11 +1,10 @@
 (function () {
   "use strict";
 
-  // T-23/T-24/T-26 - Menu: acceso a la intro narrativa, tablero de avance y guia de conceptos.
+  // Menu: acceso a la intro narrativa y guia de conceptos por fase (expediente).
+  // Sin resumen de sesion ni boton continuar: cada investigacion arranca de cero.
 
   var botonNueva = document.getElementById("boton-nueva-investigacion");
-  var botonContinuar = document.getElementById("boton-continuar");
-  var estadoLinea = document.getElementById("estado-progreso");
 
   function conceptosUnicos(fase) {
     var vistos = [];
@@ -17,17 +16,7 @@
     return vistos;
   }
 
-  function estadoFase(progreso, fase) {
-    if (progreso.fasesCompletadas.indexOf(fase.id) !== -1) {
-      return "Resuelta";
-    }
-    if (progreso.faseActual === fase.id) {
-      return "En curso";
-    }
-    return "Pendiente";
-  }
-
-  function dibujarExpediente(progreso) {
+  function dibujarExpediente() {
     var contenedor = document.getElementById("expediente");
     contenedor.textContent = "";
 
@@ -48,12 +37,7 @@
       var nombre = document.createElement("strong");
       nombre.textContent = "Fase " + fase.orden + ": " + fase.titulo;
 
-      var estado = document.createElement("span");
-      estado.className = "expediente-estado";
-      estado.textContent = estadoFase(progreso, fase);
-
       cabecera.appendChild(nombre);
-      cabecera.appendChild(estado);
 
       var objetivo = document.createElement("p");
       objetivo.className = "expediente-objetivo";
@@ -81,27 +65,13 @@
     }
   }
 
-  function actualizar() {
-    var progreso = window.Progreso.cargar();
-    var hayInvestigacion = Boolean(progreso.faseActual) || progreso.resueltos.length > 0;
-    botonContinuar.disabled = !hayInvestigacion;
-    estadoLinea.textContent = hayInvestigacion
-      ? "Investigación en curso — puntaje actual: " + progreso.puntaje + " pts."
-      : "No hay investigaciones guardadas.";
-    dibujarExpediente(progreso);
-  }
-
   botonNueva.addEventListener("click", function () {
     window.EscenaIntro.mostrar();
   });
 
-  botonContinuar.addEventListener("click", function () {
-    window.EscenaJuego.continuarInvestigacion();
-  });
-
   window.Menu = {
     inicializar: function () {
-      actualizar();
+      dibujarExpediente();
     }
   };
 })();
