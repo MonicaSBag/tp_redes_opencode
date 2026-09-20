@@ -156,6 +156,8 @@ button{font-family:inherit;cursor:pointer}
 .nav-item svg{flex:0 0 auto;opacity:.85}
 .nav-item:hover{background:rgba(96,132,205,.08);color:var(--t)}
 .nav-item.active{background:linear-gradient(180deg,#16224a,#101a38);color:#eaf1ff;border-color:#2b55b8;box-shadow:inset 0 0 0 1px rgba(43,85,184,.25)}
+.nav-item.decorativo{opacity:.45;cursor:default}
+.nav-item.decorativo:hover{background:transparent;color:var(--t-2)}
 .side-brand{
   border-top:1px solid var(--borde);padding-top:14px;text-align:center;
 }
@@ -627,8 +629,8 @@ button{font-family:inherit;cursor:pointer}
     <nav class="nav" aria-label="Navegación principal">
       <button class="nav-item active" data-accion="inicio"><span data-ic="home"></span><span class="nav-label">Inicio</span></button>
       <button class="nav-item" data-accion="tickets"><span data-ic="tickets"></span><span class="nav-label">Tickets</span></button>
-      <button class="nav-item" data-accion="operaciones"><span data-ic="actividad"></span><span class="nav-label">Operaciones</span></button>
-      <button class="nav-item" data-accion="recursos"><span data-ic="servidor"></span><span class="nav-label">Recursos</span></button>
+      <button class="nav-item decorativo" data-accion="operaciones" disabled aria-disabled="true" tabindex="-1" title="Sección decorativa"><span data-ic="actividad"></span><span class="nav-label">Operaciones</span></button>
+      <button class="nav-item decorativo" data-accion="recursos" disabled aria-disabled="true" tabindex="-1" title="Sección decorativa"><span data-ic="servidor"></span><span class="nav-label">Recursos</span></button>
     </nav>
     <div class="side-brand">
       <div class="sb-logo">
@@ -2286,11 +2288,10 @@ function toggleDetalleResumen(vista){
 /* ============================================================
    SIDEBAR / NAV
    ============================================================ */
-$$(".nav-item").forEach(b=>{
+$$(".nav-item:not(.decorativo)").forEach(b=>{
   b.addEventListener("click", ()=>{
     const acc = b.dataset.accion;
-    if(acc==="inicio" || acc==="tickets"){ irInicio(); return; }
-    toast("Módulo en desarrollo — próximamente.");
+    if(acc==="inicio" || acc==="tickets"){ irInicio(); }
   });
 });
 
