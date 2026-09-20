@@ -1,148 +1,74 @@
-# Detective de Redes
+# NEXUS CORP — NOC Support Ticket System
 
-Juego educativo interactivo en el que el jugador asume el rol de un detective especializado en redes informáticas. La empresa ficticia **NEXUS Corp** sufrió un incidente que provocó fallas en su infraestructura y el jugador deberá investigarlo a través de tres fases de dificultad creciente:
+Juego educativo de redes en un único archivo. El jugador es el turno de guardia del NOC de la empresa ficticia **NEXUS Corp** y debe resolver tickets de soporte en 3 fases (mañana / tarde / noche).
 
-1. **Fase 1 - La escena del crimen**: reconstruir la infraestructura de red (Router, Switch, Gateway, segmentos), y comprender el rol del Hub frente al Switch (MAC) y las VLAN.
-2. **Fase 2 - Siguiendo las pistas**: analizar el comportamiento de la red (Handshake TCP, DNS, DHCP, puertos y servicios como HTTP/SMB/LDAP, reconocimiento de tráfico anómalo).
-3. **Fase 3 - El ataque**: identificar el vector del incidente (RDP/3389 expuesto) y contenerlo (Firewall, DMZ, VPN, mínimo privilegio).
+Todo está en `juego-noc.html`: HTML + CSS + JS vanilla, sin frameworks, sin backend, sin build step, sin dependencias externas.
 
-La documentación completa está en la carpeta `Documentacion/` junto con el documento de requisitos.
+## Ejecutar
+
+Opción 1 — doble clic en `juego-noc.html`.
+
+Opción 2 — servidor local:
+
+```bash
+python -m http.server 8000
+# abrir http://localhost:8000/juego-noc.html
+```
 
 ## Estructura del proyecto
 
 ```
-Detective de Redes/
-├── CONTEXT.md                  # Contexto y bitácora de sesiones para agentes de IA
-├── index.html                  # Punto de entrada (perfiles: menu, intro, juego, informe)
-├── css/
-│   └── estilos.css             # Tema "detective" con variables CSS y componentes
-├── js/
-│   ├── contenido.js            # Contenido educativo (window.CONTENIDO)
-│   ├── gestor-escenas.js       # (data/) Navegacion entre pantallas
-│   ├── puntaje.js              # Puntos, penalizaciones y rangos
-│   ├── progreso.js             # Guardado en localStorage
-│   ├── pistas.js               # Pistas por desafio (maximo 3 por sesion)
-│   ├── errores.js              # Manejo global de errores
-│   ├── motor.js                # Motor: renderizado y validacion de desafios
-│   ├── escena-intro.js         # Intro narrativa del caso NEXUS
-│   ├── escena-juego.js         # Flujo de juego y avance de fases
-│   ├── escena-informe.js       # Informe final
-│   ├── menu.js                 # Menu, expediente y tablero de avance
-│   └── main.js                 # Arranque
-├── data/
-│   └── contenido.js            # Fases, desafios y evidencias
-├── tests/
-│   └── test-flujo.js           # Test de integracion con DOM simulado (Node)
-├── Documentacion/
-│   ├── Detective de Redes.docx
-│   ├── Requisitos - Detective de Redes.md
-│   └── Plan de desarrollo - Detective de Redes.md
-├── context/                    # Documentacion para agentes de IA
-├── requirements.txt
-└── README.md
+./
+├── juego-noc.html   # Todo el juego (estilos, vistas y lógica)
+├── README.md        # Este archivo
+├── .gitignore
+└── opencode.json    # Config del agente OpenCode (no es parte del juego)
 ```
 
-## Ejecutar el juego
+`juego-noc.html` no carga ningún `<script src>`, `<link>` ni `fetch`. Los únicos `<use href="#...">` apuntan a símbolos SVG definidos dentro del mismo archivo.
 
-No hay compilación. Para desarrollarlo, levantá un servidor local y abrí `http://localhost:8000`:
+## Estructura interna de `juego-noc.html`
 
-```bash
-python -m http.server 8000
-```
+1. `<style>` (~600 líneas): variables CSS (`--bg`, `--panel`, `--fase1/2/3`), layout `.app` en grid (`top / side+main / foot`), componentes (`.btn`, `.chip`, `.ticket`, `.view`, login, asistente).
+2. HTML shell:
+   - `#pantalla-login`: login de operario + fondo neural SVG.
+   - `#app.hidden`: header (usuario), sidebar (3 fases), main con 3 vistas (`#view-inicio`, `#view-fase`, `#view-resumen`), footer + FAB del asistente.
+   - `svg` oculto con símbolos (`#hex-n` e iconos de dispositivos).
+3. `<script>` (~1400 líneas):
+   - `const FASES`: datos de las 3 fases y sus 9 tickets.
+   - Estado y persistencia (`STORAGE_KEY = "nexus-noc-v1"`).
+   - Navegación (`irInicio`, `irFase`, `abrirTicket`, `irResumen`).
+   - Resolución (`verificar`, `reintentarTicket`, `congelarInteraccion`).
+   - Tipos de ticket, consola con tipeo, asistente de pistas, resumen final.
 
-(También funciona abriendo `index.html` con doble clic en la mayoría de los navegadores.)
+## Contenido del juego: 3 fases, 9 tickets
 
-## Probar el código
+**Fase 1 — Conectividad básica (turno mañana)**
+- `1.1` Red lenta y colisiones: Hub vs Switch (opciones con icono).
+- `1.2` Identificación de topología en estrella (diagrama SVG).
+- `1.3` Ordenar las 7 capas del modelo OSI (arrastrar/ordenar).
 
-```bash
-# Sintaxis de todos los JavaScript (requiere Node):
-for f in data/contenido.js js/*.js; do node --check "$f"; done
+**Fase 2 — Servicios caídos (turno tarde)**
+- `2.1` Sin internet, IP `169.254.x.x` APIPA: sin respuesta DHCP (consola `ipconfig /all`).
+- `2.2` La web no carga por nombre pero sí por IP: DNS caído (consola `nslookup`).
+- `2.3` `ping PC-VENTAS` no encuentra el host: falta resolución de nombres (consola).
 
-# Test de integracion del flujo completo (menu -> intro -> 3 fases -> informe):
-node tests/test-flujo.js
-```
+**Fase 3 — Diseño y seguridad (turno noche)**
+- `3.1` Publicación segura de servidor web: Internet → Firewall → DMZ → Gateway → LAN (armado firewall/DMZ).
+- `3.2` Ranking de 6 enlaces entre sucursales por costo/performance (fibra > MPLS > microondas > 4G/5G > residencial > satelital).
+- `3.3` IPv4 vs IPv6 en `ipconfig` (32 bits decimal vs 128 bits hexadecimal).
 
-## Requisitos previos
+## Flujo y reglas
 
-- **Git** (para clonar el repositorio).
-- **Python 3.10+** (para el entorno virtual y dependencias de documentación).
-- **Node.js 18+** o un gestor de paquetes (necesario solo si instalas OpenCode con npm).
-- Opcional pero **recomendado en Windows**: [WSL](https://learn.microsoft.com/es-es/windows/wsl/install) para usar OpenCode.
+Login (nombre de operario) → Inicio (tarjetas de fase, desbloqueo secuencial) → Fase (cola de tickets `pendiente / en_curso / resuelto / fallado`) → Resumen (`CASO RESUELTO` o `INCOMPLETO` + detalle por ticket).
 
-## Descarga del repositorio
-
-```bash
-git clone https://github.com/TU_USUARIO/detective-de-redes.git
-cd detective-de-redes
-```
-
-Reemplaza `TU_USUARIO/detective-de-redes` por la URL de tu repositorio.
-
-## Crear el entorno virtual e instalar dependencias
-
-### Windows (PowerShell)
-
-```powershell
-python -m venv .env
-.env\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
-
-### Windows (Git Bash / CMD)
-
-```bash
-python -m venv .env
-source .env/Scripts/activate
-pip install -r requirements.txt
-```
-
-### Linux / macOS
-
-```bash
-python3 -m venv .env
-source .env/bin/activate
-pip install -r requirements.txt
-```
+- Cada ticket tiene 2 pistas en el asistente lateral.
+- Al responder se muestra feedback `fbOk` / `fbKo` y se congela la interacción; los fallados se pueden reintentar.
+- El progreso (mapa `id → estado`) se guarda en `localStorage` bajo `nexus-noc-v1`. Borrar esa clave reinicia la partida.
 
 ## Instalación del agente OpenCode
 
 OpenCode es el agente de IA que asiste en el desarrollo del proyecto. Elige una de las siguientes opciones:
-
-### Opción A - Windows (recomendada)
-
-```bash
-scoop install opencode          # con Scoop
-```
-
-```bash
-choco install opencode          # con Chocolatey
-```
-
-### Opción B - Con Node.js (todas las plataformas)
-
-```bash
-npm install -g opencode-ai
-```
-
-También es compatible con `bun`, `pnpm` o `yarn`.
-
-### Opción C - WSL / Linux / macOS
-
-```bash
-brew install anomalyco/tap/opencode   # macOS / Linux con Homebrew
-```
-
-```bash
-curl -fsSL https://opencode.ai/install | bash
-```
-
-> En Windows se recomienda usar WSL para obtener el mejor rendimiento y compatibilidad con todas las funciones de OpenCode.
-
-Verifica la instalación:
-
-```bash
-opencode --version
-```
 
 ## Configurar el proveedor de IA (primera vez)
 
@@ -189,8 +115,3 @@ opencode stats                  # ver uso de tokens y costo
 opencode upgrade                # actualizar a la última versión
 ```
 
-## Notas
-
-- El contenido teórico del juego se define en `Documentacion/`.
-- No subas a GitHub el entorno virtual ni claves de API: están excluidos por `.gitignore`.
-- Usa el archivo `requirements.txt` para instalar las mismas dependencias en cualquier equipo.
