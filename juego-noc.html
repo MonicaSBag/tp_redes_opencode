@@ -1086,8 +1086,10 @@ function irFase(faseIdx){
   $("#view-inicio").classList.add("hidden");
   $("#view-resumen").classList.add("hidden");
   $("#view-fase").classList.remove("hidden");
-  setFabVisible(true);
-  abrirPrimerTicket(faseIdx);
+  // Se muestra solo la cola: el detalle lo abre el ticket que
+  // seleccione el usuario (sin auto-relatar el primero).
+  setFabVisible(false);
+  renderFase(faseIdx, null);
 }
 function irResumen(){
   vistaActual="resumen"; ticketActual=null;
@@ -1191,6 +1193,8 @@ function renderInicio(){
 function reiniciarFlujo(){
   if(!confirm("¿Reiniciar todo el recorrido de formación? Se perderá el progreso actual.")) return;
   resetPartida();
+  pistasPorTicket = {};
+  pistasAgotadasPorTicket = {};
   irInicio();
   toast("Recorrido reiniciado.");
 }
@@ -1198,11 +1202,6 @@ function reiniciarFlujo(){
 /* ============================================================
    VISTA FASE — COLA + DETALLE
    ============================================================ */
-function abrirPrimerTicket(faseIdx){
-  const pend = FASES[faseIdx].tickets.find(t=>estadoTicket(t.id)==="pendiente");
-  renderFase(faseIdx, pend ? pend.id : FASES[faseIdx].tickets[0].id);
-}
-
 function renderFase(faseIdx, ticketId){
   const vista = $("#view-fase");
   const fase = FASES[faseIdx];
@@ -1266,6 +1265,9 @@ function abrirTicket(tid){
   const fase = FASES[faseIdx];
   const cont = $("#detalle-ticket");
   if(!cont) return;
+  // La pregunta resaltada en la cola es la seleccionada por el usuario.
+  $$(".queue-ticket").forEach(b=>b.classList.toggle("sel", b.dataset.abrir===tid));
+  setFabVisible(true);
 
   // Si cambiamos de ticket cerramos/limpiamos el panel IA
   limpiarConsolaTimers();
@@ -1318,11 +1320,12 @@ function abrirTicket(tid){
     spieg.disabled=false;
   }else if(reintento){
     // Fallado: se puede reintentar. Se ofrece la interacción
-    // de nuevo (sin revelar la solución) y se avisa al usuario.
+    // de nuevo (sin revelar la solución). Siguiente queda
+    // bloqueado hasta verificar el nuevo intento.
     const zra = construirZonaResolucion(t, faseIdx, tickIdx);
     zona.innerHTML = zra.html;
     zra.onMount(zona, false);
-    spieg.disabled=false;
+    spieg.disabled=true;
   }else{
     const zra = construirZonaResolucion(t, faseIdx, tickIdx);
     zona.innerHTML = zra.html;
@@ -1348,6 +1351,11 @@ function nextPendiente(faseIdx, tid){
 
 function siguienteDesde(tid){
   const est = estadoTicket(tid);
+  // No se permite continuar sin haber cargado (verificado) la respuesta.
+  if(est==="pendiente"){
+    toast("Verificá tu respuesta antes de continuar.");
+    return;
+  }
   const { faseIdx } = findTicketMeta(tid);
   const fase = FASES[faseIdx];
   if(faseRespondida(faseIdx)){
@@ -1880,7 +1888,8 @@ function reintentarTicket(tid){
   zona.innerHTML = zra.html;
   zra.onMount(zona, false);
   const spieg = $("#btn-siguiente");
-  if(spieg) spieg.disabled = false;
+  // No se permite continuar sin verificar el nuevo intento.
+  if(spieg) spieg.disabled = true;
   toast("Ticket reintentado: respondelo de nuevo.");
 }
 
@@ -1977,20 +1986,30 @@ function currentTicket(){
 const fabButton = $("#fab-asistente");
 const panel = $("#panel-asistente");
 
-// estado de pistas por ticket (se resetea al abrir un ticket nuevo)
+// Pistas del asistente: máximo 3 en todo el recorrido (repartidas
+// entre los tickets que el usuario elija; cada ticket aporta como
+// máximo sus 2 pistas definidas en FASES).
+const MAX_PISTAS_JUEGO = 3;
 let pistasPorTicket = {};          // {id: cantidadEntregadas}
 let pistasAgotadasPorTicket = {};  // {id: true cuando se mostró el aviso final}
 let asisAbierto = false;
 
 function resetAsistenteTicket(){
-  pistasPorTicket[ticketActual] = 0;
-  pistasAgotadasPorTicket[ticketActual] = false;
+  // No se resetea al abrir: lo consumido se conserva para que el
+  // tope global de 3 no se pueda saltear reabriendo tickets.
+  if(!(ticketActual in pistasPorTicket)) pistasPorTicket[ticketActual] = 0;
+  if(!(ticketActual in pistasAgotadasPorTicket)) pistasAgotadasPorTicket[ticketActual] = false;
   cerrarAsistente();
 }
 function pistasUsadas(){ return pistasPorTicket[ticketActual] || 0; }
+function pistasTotalesUsadas(){
+  let n = 0;
+  for(const k in pistasPorTicket){ n += pistasPorTicket[k] || 0; }
+  return n;
+}
 function pistasRestantesTicket(){
   const t = currentTicket(); if(!t) return 0;
-  return Math.max(0, 2 - pistasUsadas());
+  return Math.max(0, MAX_PISTAS_JUEGO - pistasTotalesUsadas());
 }
 function tokensAgotados(){ return !!(pistasAgotadasPorTicket[ticketActual]); }
 function actualizarBannerAsistente(){
@@ -2015,12 +2034,13 @@ function abrirAsistente(){
   }
   const cuerpo = $("#chat-cuerpo");
   if(!tieneMensajes(cuerpo)){
-    agregarMsgAsistente("Estás en el ticket #"+t.id+" · “"+t.asunto+"”. ¿En qué te ayudo? Podés escribir tu pregunta o usar el botón de pista.");
+    agregarMsgAsistente("Estás en el ticket #"+t.id+" · “"+t.asunto+"”. ¿En qué te ayudo? Podés escribir tu pregunta o usar el botón de pista (máximo 3 pistas en todo el recorrido).");
   }
   const inp = $("#chat-input");
   const env = $("#chat-enviar");
-  if(inp) inp.disabled = tokensAgotados();
-  if(env) env.disabled = tokensAgotados();
+  const sinTokens = tokensAgotados() || pistasTotalesUsadas()>=MAX_PISTAS_JUEGO;
+  if(inp) inp.disabled = sinTokens;
+  if(env) env.disabled = sinTokens;
   actualizarTokenMeter();
   actualizarQuick();
   if(inp && !inp.disabled) inp.focus();
@@ -2037,8 +2057,8 @@ function construirPanelAsistente(){
   '<div class="assistant-head">'+
     '<div class="a-ico">'+ic("robot")+'</div>'+
     '<div class="a-tit"><b>Asistente IA</b><span id="asistente-subs">Copiloto NOC '+(t?"· Ticket #"+t.id:"")+'</span></div>'+
-    '<div class="token-meter" title="Tokens de pista disponibles">'+
-      '<span class="tm-label">Tokens</span><span class="tm-dots"><span class="tm-dot"></span><span class="tm-dot"></span></span>'+
+    '<div class="token-meter" title="Tokens de pista disponibles (3 en todo el recorrido)">'+
+      '<span class="tm-label">Tokens</span><span class="tm-dots"><span class="tm-dot"></span><span class="tm-dot"></span><span class="tm-dot"></span></span>'+
     '</div>'+
     '<button class="a-btn" id="chat-min" aria-label="Minimizar">'+ic("minimizar")+'</button>'+
     '<button class="a-btn" id="chat-cerrar" aria-label="Cerrar">'+ic("cerrar")+'</button>'+
@@ -2097,17 +2117,19 @@ function msgSistemaHTML(texto, rojo){
 function entregarPista(){
   const t = currentTicket();
   if(!t) return;
-  if(tokensAgotados()){
-    agregarMsgSistema("Se agotaron los tokens, no tienes más pistas.", true);
+  if(tokensAgotados() || pistasTotalesUsadas()>=MAX_PISTAS_JUEGO){
+    // Tope global de 3 pistas en todo el recorrido.
+    pistasAgotadasPorTicket[ticketActual] = true;
+    agregarMsgSistema("Se agotaron los tokens: máximo 3 pistas en todo el recorrido.", true);
     bloquearComposer();
+    actualizarQuick();
+    actualizarTokenMeter();
     return;
   }
   const usadas = pistasUsadas();
-  if(usadas>=2){
-    // Intentó consultar una tercera vez: se muestran los tokens agotados.
-    pistasAgotadasPorTicket[ticketActual] = true;
-    agregarMsgSistema("Se agotaron los tokens, no tienes más pistas.", true);
-    bloquearComposer();
+  if(usadas>=(t.pistas||[]).length){
+    // Este ticket ya no tiene más pistas para dar.
+    agregarMsgSistema("Este ticket ya no tiene más pistas. Te quedan "+pistasRestantesTicket()+" en el recorrido.", true);
     actualizarQuick();
     actualizarTokenMeter();
     return;
@@ -2115,9 +2137,14 @@ function entregarPista(){
   const pista = t.pistas[usadas];
   pistasPorTicket[ticketActual] = usadas+1;
   agregarMsgAsistente("Pista "+(usadas+1)+": "+pista, 600);
-  if(usadas===0){
+  if(pistasTotalesUsadas()>=MAX_PISTAS_JUEGO){
     setTimeout(()=>{
-      agregarMsgSistema("Tienes pocos tokens: te queda una sola chance de consultar una pista.", false);
+      agregarMsgSistema("Se agotaron los tokens: usaste las 3 pistas del recorrido.", true);
+    }, 2600);
+    bloquearComposer();
+  }else if(pistasTotalesUsadas()===MAX_PISTAS_JUEGO-1){
+    setTimeout(()=>{
+      agregarMsgSistema("Tienes pocos tokens: te queda una sola pista en todo el recorrido.", false);
     }, 2600);
   }
   actualizarTokenMeter();
@@ -2142,7 +2169,7 @@ function actualizarTokenMeter(){
 }
 function actualizarQuick(){
   const q=$("#chat-pista"); if(!q) return;
-  q.disabled = tokensAgotados();
+  q.disabled = tokensAgotados() || pistasTotalesUsadas()>=MAX_PISTAS_JUEGO;
   q.innerHTML = ic("bombilla")+" Necesito una pista";
   const svg=q.querySelector("svg");
   if(svg) svg.style.pointerEvents="none";
