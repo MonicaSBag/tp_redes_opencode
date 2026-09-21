@@ -503,13 +503,6 @@ button{font-family:inherit;cursor:pointer}
 .msg-sys .sys-burbuja.sys-rojo{background:var(--rojo-bg);border-color:rgba(255,90,95,.45);color:var(--rojo)}
 .msg-sys .sys-burbuja svg{flex:0 0 auto;width:14px;height:14px;margin-top:2px}
 .assistant-composer{border-top:1px solid var(--borde);padding:10px 12px;background:#0e1730;display:flex;flex-direction:column;gap:8px}
-.quick-hint{
-  background:var(--celeste-bg);border:1px solid rgba(69,183,255,.35);color:var(--celeste);
-  border-radius:9px;padding:8px 12px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:8px;justify-content:center;
-}
-.quick-hint:hover{filter:brightness(1.15)}
-.quick-hint:disabled{opacity:.45;cursor:not-allowed}
-.quick-hint svg{width:15px;height:15px}
 .composer{display:flex;gap:8px}
 .composer input{
   flex:1;background:var(--panel-3);border:1px solid var(--borde);border-radius:9px;color:var(--t);
@@ -517,6 +510,7 @@ button{font-family:inherit;cursor:pointer}
 }
 .composer input:focus{border-color:var(--celeste)}
 .composer input:disabled{opacity:.5}
+.composer input[readonly]{cursor:default}
 .composer button{
   width:38px;height:38px;flex:0 0 auto;border-radius:9px;border:1px solid #2b55b8;
   background:linear-gradient(180deg,#1d3f8f,#14306e);color:#eaf1ff;display:flex;align-items:center;justify-content:center;
@@ -749,7 +743,7 @@ const FASES = [
       {
         id:"1.1", asunto:"Red lenta y colisiones en Sucursal Nueva", prioridad:"media",
         cliente:"Sucursal Nueva", fecha:"Lun 12/01/2026", hora:"08:05",
-        descripcion:"En la sucursal nueva conectamos 10 PCs a un mismo equipo y ahora todos ven el tráfico de todos, se generan colisiones y la red está muy lenta. Necesitamos identificar cuál es el dispositivo que está generando el problema y cuál sería el más adecuado para resolverlo.",
+        descripcion:"En la sucursal nueva conectamos 10 PCs a un mismo equipo y ahora todos ven el tráfico de todos, se generan colisiones y la red está muy lenta.",
         tipo:"opciones-con-icono", pregunta:"¿Cuál de estos dispositivos está causando el problema?",
         opciones:[
           {id:"hub", t:"Hub", icono:"hub"},
@@ -786,7 +780,7 @@ const FASES = [
       {
         id:"1.3", asunto:"Corte de comunicación - Modelo OSI", prioridad:"media",
         cliente:"Oficina Central, NEXUS Corp", fecha:"Lun 12/01/2026", hora:"09:10",
-        descripcion:"El proveedor de soporte de nivel 3 pide que identifiquemos en qué capa se cortó la comunicación. Para eso, primero debemos ordenar correctamente las capas del modelo OSI.",
+        descripcion:"El proveedor de soporte de nivel 3 pide que identifiquemos en qué capa se cortó la comunicación. Ordená correctamente las capas del modelo OSI, desde la más baja hasta la más alta.",
         tipo:"osi",
         capas:["Aplicación","Presentación","Sesión","Transporte","Red","Enlace de Datos","Física"],
         ordenCorrecto:["Aplicación","Presentación","Sesión","Transporte","Red","Enlace de Datos","Física"],
@@ -876,7 +870,7 @@ const FASES = [
       {
         id:"2.3", asunto:"No resuelve nombres de equipos", prioridad:"media",
         cliente:"Oficina Central, NEXUS Corp", fecha:"Mar 13/01/2026", hora:"14:47",
-        descripcion:"En la doc vieja del cliente aparecen nombres de PC tipo \\\\PC-VENTAS, pero el sistema nuevo pide todo por IP/hostname. Probamos acceder por nombre de equipo:",
+        descripcion:"En la doc vieja del cliente aparecen nombres de PC tipo \PC-VENTAS, pero el sistema nuevo pide todo por IP/hostname. Probamos acceder al equipo usando ese nombre simple de red (sin dominio).",
         tipo:"consola",
         comando:"> ping PC-VENTAS",
         salida:[
@@ -2025,6 +2019,13 @@ fabButton.addEventListener("click", ()=>{
   abrirAsistente();
 });
 
+function mensajePistaPredefinido(){
+  return "Quiero una pista para resolver el incidente";
+}
+function actualizarMensajePista(){
+  const inp = $("#chat-input");
+  if(inp) inp.value = mensajePistaPredefinido();
+}
 function abrirAsistente(){
   if(!ticketActual) return;
   const t = currentTicket();
@@ -2035,8 +2036,9 @@ function abrirAsistente(){
     panel.innerHTML = construirPanelAsistente();
   }
   const cuerpo = $("#chat-cuerpo");
+  actualizarMensajePista();
   if(!tieneMensajes(cuerpo)){
-    agregarMsgAsistente("Estás en el ticket #"+t.id+" · “"+t.asunto+"”. ¿En qué te ayudo? Podés escribir tu pregunta o usar el botón de pista (máximo 3 pistas en todo el recorrido).");
+    agregarMsgAsistente("Estás en el ticket #"+t.id+" · “"+t.asunto+"”. Presioná el botón de enviar para pedir una pista (máximo 3 en todo el recorrido).");
   }
   const inp = $("#chat-input");
   const env = $("#chat-enviar");
@@ -2044,7 +2046,6 @@ function abrirAsistente(){
   if(inp) inp.disabled = sinTokens;
   if(env) env.disabled = sinTokens;
   actualizarTokenMeter();
-  actualizarQuick();
   if(inp && !inp.disabled) inp.focus();
 }
 function cerrarAsistente(){
@@ -2067,9 +2068,8 @@ function construirPanelAsistente(){
   '</div>'+
   '<div class="assistant-body" id="chat-cuerpo" aria-live="polite"></div>'+
   '<div class="assistant-composer">'+
-    '<button class="quick-hint" id="chat-pista">'+ic("bombilla")+' Necesito una pista</button>'+
     '<div class="composer">'+
-      '<input id="chat-input" type="text" placeholder="Escribí tu pregunta..." autocomplete="off" />'+
+      '<input id="chat-input" type="text" readonly autocomplete="off" />'+
       '<button id="chat-enviar" aria-label="Enviar">'+ic("enviar")+'</button>'+
     '</div>'+
   '</div>';
@@ -2124,7 +2124,6 @@ function entregarPista(){
     pistasAgotadasPorTicket[ticketActual] = true;
     agregarMsgSistema("Se agotaron los tokens: máximo 3 pistas en todo el recorrido.", true);
     bloquearComposer();
-    actualizarQuick();
     actualizarTokenMeter();
     return;
   }
@@ -2132,7 +2131,6 @@ function entregarPista(){
   if(usadas>=(t.pistas||[]).length){
     // Este ticket ya no tiene más pistas para dar.
     agregarMsgSistema("Este ticket ya no tiene más pistas. Te quedan "+pistasRestantesTicket()+" en el recorrido.", true);
-    actualizarQuick();
     actualizarTokenMeter();
     return;
   }
@@ -2150,7 +2148,6 @@ function entregarPista(){
     }, 2600);
   }
   actualizarTokenMeter();
-  actualizarQuick();
 }
 function agregarMsgSistema(texto, rojo){
   const cuerpo=$("#chat-cuerpo"); if(!cuerpo) return;
@@ -2158,10 +2155,9 @@ function agregarMsgSistema(texto, rojo){
   cuerpo.scrollTop=cuerpo.scrollHeight;
 }
 function bloquearComposer(){
-  const inp=$("#chat-input"); const env=$("#chat-enviar"); const q=$("#chat-pista");
+  const inp=$("#chat-input"); const env=$("#chat-enviar");
   if(inp) inp.disabled=true;
   if(env) env.disabled=true;
-  if(q) q.disabled=true;
   actualizarTokenMeter();
 }
 function actualizarTokenMeter(){
@@ -2169,20 +2165,11 @@ function actualizarTokenMeter(){
   const rest=pistasRestantesTicket();
   dots.forEach((d,i)=>{ d.classList.toggle("off", i>=rest); });
 }
-function actualizarQuick(){
-  const q=$("#chat-pista"); if(!q) return;
-  q.disabled = tokensAgotados() || pistasTotalesUsadas()>=MAX_PISTAS_JUEGO;
-  q.innerHTML = ic("bombilla")+" Necesito una pista";
-  const svg=q.querySelector("svg");
-  if(svg) svg.style.pointerEvents="none";
-}
-
 // listeners del panel (delegación)
 document.addEventListener("click", e=>{
   const target = e.target;
   if(target.closest("#chat-min")){ cerrarAsistente(); return; }
   if(target.closest("#chat-cerrar")){ cerrarAsistente(); return; }
-  if(target.closest("#chat-pista")){ entregarPista(); return; }
   if(target.closest("#chat-enviar")){ const inp=$("#chat-input"); if(inp && !inp.disabled && inp.value.trim()) enviarMensaje(inp.value.trim()); return; }
 });
 document.addEventListener("keydown", e=>{
@@ -2197,8 +2184,8 @@ function enviarMensaje(texto){
   const cuerpo=$("#chat-cuerpo");
   cuerpo.appendChild(msgUsuarioHTML(texto));
   cuerpo.scrollTop=cuerpo.scrollHeight;
-  const inp=$("#chat-input"); if(inp){ inp.value=""; }
-  // cualquier mensaje dispara la siguiente pista
+  const inp=$("#chat-input"); if(inp){ inp.value=mensajePistaPredefinido(); }
+  // el mensaje predefinido dispara la siguiente pista
   entregarPista();
 }
 
