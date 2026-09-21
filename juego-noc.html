@@ -648,7 +648,9 @@ button{font-family:inherit;cursor:pointer}
 </div>
 
 <!-- ===================== ASISTENTE IA ===================== -->
-<button id="fab-asistente" class="fab drowsy hidden" aria-label="Abrir Asistente IA" hidden></button>
+<button id="fab-asistente" class="fab dormido hidden" aria-label="Abrir Asistente IA" hidden>
+  <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><use href="#robot-ico"/></svg>
+</button>
 <div id="panel-asistente" class="assistant hidden"></div>
 
 <!-- ===================== TOAST ===================== -->
@@ -659,6 +661,14 @@ button{font-family:inherit;cursor:pointer}
   <symbol id="hex-n" viewBox="0 0 64 64">
     <polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
     <path d="M20 45 L20 19 L44 45 L44 19" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="robot-ico" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="8" width="16" height="11" rx="3"/>
+      <path d="M12 8V4M12 8h0M8 12h.01M16 12h.01M12 16v0M9 15h.01M15 15h.01"/>
+      <path d="M12 4 8.5 6.5M12 4l3.5 2.5"/>
+      <path d="M2 13v3M22 13v3"/>
+    </g>
   </symbol>
 </svg>
 
@@ -2058,7 +2068,7 @@ function construirPanelAsistente(){
   const t = currentTicket();
   return ''+
   '<div class="assistant-head">'+
-    '<div class="a-ico">'+ic("robot")+'</div>'+
+    '<div class="a-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#robot-ico"/></svg></div>'+
     '<div class="a-tit"><b>Asistente IA</b><span id="asistente-subs">Copiloto NOC '+(t?"· Ticket #"+t.id:"")+'</span></div>'+
     '<div class="token-meter" title="Tokens de pista disponibles (3 en todo el recorrido)">'+
       '<span class="tm-label">Tokens</span><span class="tm-dots"><span class="tm-dot"></span><span class="tm-dot"></span><span class="tm-dot"></span></span>'+
