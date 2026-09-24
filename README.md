@@ -65,6 +65,7 @@ Login (nombre de operario) → Inicio (tarjetas de fase, desbloqueo secuencial) 
 - El asistente lateral tiene un máximo de 3 pistas en todo el recorrido (cada ticket aporta como máximo sus 2 pistas): el campo trae el mensaje predefinido `Quiero una pista para resolver el incidente` (solo lectura) y se pide con el botón de enviar.
 - El botón Siguiente queda bloqueado hasta verificar la respuesta; no se puede continuar con un ticket `pendiente` sin responder (tampoco después de reintentar un fallado).
 - Al responder se muestra feedback `fbOk` / `fbKo` y se congela la interacción; los fallados se pueden reintentar.
+- Música de ambiente generada con Web Audio (sin archivos externos), activa por defecto desde el inicio: en la barra superior hay un botón de parlante para silenciarla/reactivarla, con deslizador de volumen.
 - El progreso (mapa `id → estado`) se guarda en `localStorage` bajo `nexus-noc-v1`. Borrar esa clave reinicia la partida.
 
 ## Instalación del agente OpenCode
