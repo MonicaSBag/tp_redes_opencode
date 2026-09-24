@@ -2480,6 +2480,9 @@ const INTRO = {
     const login=$("#pantalla-login"); if(login) login.classList.add("desenfocado");
     const p=$("#intro-vn"); if(p) p.classList.remove("hidden");
     const f=$("#vn-flecha"); if(f) f.classList.add("oculta");
+    // La música de ambiente arranca junto con la intro del jefe: se intenta
+    // acá y se desbloquea con el primer click/tecla (política de autoplay).
+    encenderMotor();
     this.mostrarLinea(0);
   },
   mostrarLinea(i){
@@ -3363,13 +3366,22 @@ function encenderMotor(){
     toast("Tu navegador no soporta audio.");
     audioActivo = false; guardarAudio(); pintarBotonSonido(); return;
   }
+  // Ya está sonando: solo asegura el volumen general (calls repetidos no
+  // resetean el loop del secuenciador).
+  if(audioCtx.state==="running" && audioSchedulerTimer){
+    audioMaster.gain.cancelScheduledValues(audioCtx.currentTime);
+    audioMaster.gain.setTargetAtTime(audioActivo ? audioVolumen : 0, audioCtx.currentTime, 0.05);
+    return;
+  }
   // resume() queda pendiente hasta el primer gesto del usuario
   // (click/tecla); al resolverse, si sigue activo, arranca.
   audioCtx.resume().then(()=>{
     if(!audioActivo || audioCtx.state!=="running") return;
-    audioMaster.gain.cancelScheduledValues(audioCtx.currentTime);
-    audioMaster.gain.setTargetAtTime(audioVolumen, audioCtx.currentTime, 0.6);
-    iniciarSecuenciador();
+    if(!audioSchedulerTimer){
+      audioMaster.gain.cancelScheduledValues(audioCtx.currentTime);
+      audioMaster.gain.setTargetAtTime(audioVolumen, audioCtx.currentTime, 0.6);
+      iniciarSecuenciador();
+    }
   }).catch(()=>{});
 }
 function setAudioActivo(on){
@@ -3449,7 +3461,7 @@ function prepararIconos(){
   }
 }
 
-function init(){generarFondoNeural(); prepararIconos(); iniciarLogin(); INTRO.iniciar();}
+function init(){generarFondoNeural(); prepararIconos(); iniciarLogin(); iniciarSonido(); INTRO.iniciar();}
 
 window.addEventListener("resize", ()=>{ generarFondoNeural(); });
 document.addEventListener("DOMContentLoaded", init);
