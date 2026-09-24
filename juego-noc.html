@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>NEXUS CORP — NOC Support Ticket System</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Cpolygon%20points='32,3%2057,17.5%2057,46.5%2032,61%207,46.5%207,17.5'%20fill='%230a0e1a'%20stroke='%2345b7ff'%20stroke-width='4'%20stroke-linejoin='round'/%3E%3Cpath%20d='M20%2045%20L20%2019%20L44%2045%20L44%2019'%20fill='none'%20stroke='%2345b7ff'%20stroke-width='4.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E" />
+<meta name="theme-color" content="#0a0e1a" />
 <style>
 /* ============================================================
    NEXUS CORP — NOC Support Ticket System
@@ -322,6 +324,12 @@ button{font-family:inherit;cursor:pointer}
 }
 .option .opt-icon{width:100%;height:54px;display:flex;align-items:center;justify-content:center}
 .option .opt-icon svg{width:44px;height:44px;color:var(--t-2)}
+.option .opt-icon img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+.option .opt-icon.con-imagen{
+  height:110px;padding:6px;background:rgba(13,20,38,.4);border-radius:8px;
+  border:1px solid rgba(96,132,205,.18);
+}
+.option .opt-icon.con-imagen img{width:100%;height:100%;object-fit:contain}
 .option span{font-size:13px;font-weight:600}
 .option:hover{border-color:var(--borde-2)}
 .option.selected{border-color:var(--celeste);background:rgba(69,183,255,.10);box-shadow:0 0 0 1px var(--celeste)}
@@ -531,6 +539,93 @@ button{font-family:inherit;cursor:pointer}
 .typing-ind i:nth-child(2){animation-delay:.15s}.typing-ind i:nth-child(3){animation-delay:.3s}
 @keyframes tTyp{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
 
+/* ---------- Briefing del Jefe (variante corporativa ámbar) ---------- */
+.fab.jefe{
+  right:92px;
+  background:linear-gradient(180deg,#6d4c12,#48310a);border-color:#8a6420;color:#ffe9b0;
+  box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 0 4px rgba(255,209,102,.16);
+}
+.fab.jefe.dormido{background:linear-gradient(180deg,#2b2416,#1c1810);border-color:#4d4327}
+.assistant.jefe .assistant-head{background:linear-gradient(180deg,#3a2a0e,#2a1f0a);border-bottom-color:rgba(255,209,102,.28)}
+.assistant.jefe .assistant-head .a-ico{background:rgba(255,209,102,.16);color:var(--ambar)}
+.assistant.jefe .assistant-head .a-tit b{color:#ffe9b0}
+.assistant.jefe .assistant-head .a-tit span{color:var(--ambar)}
+.assistant.jefe .assistant-body{background:rgba(20,15,6,.5)}
+.assistant.jefe .msg-assist .burbuja{background:rgba(58,42,14,.85);border-color:rgba(255,209,102,.28)}
+.assistant.jefe .assistant-composer{background:#241a08;border-top-color:rgba(255,209,102,.25)}
+.assistant.jefe .assistant-composer .btn{width:100%;justify-content:center}
+
+/* ---------- Intro (escena visual novel) ---------- */
+/* La intro se superpone como OVERLAY: el login queda visible atrás,
+   desenfocado (clase .desenfocado), y la escena del jefe arriba. */
+.screen.intro{
+  z-index:30;overflow:hidden;
+  background:rgba(6,9,18,.35); /* velo sutil: no tapa el login */
+}
+.desenfocado{filter:blur(8px) brightness(.6);pointer-events:none;transition:filter .3s}
+.intro-saltar{
+  position:absolute;top:18px;right:20px;z-index:5;
+  background:rgba(20,15,6,.6);border-color:rgba(255,209,102,.4);color:var(--ambar);font-size:12px;
+}
+.intro-saltar:hover{background:rgba(58,42,14,.85);border-color:rgba(255,209,102,.65)}
+.vn-escena{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:0 0 38px}
+.vn-personaje{position:absolute;right:8%;bottom:185px;width:280px;display:flex;flex-direction:column;align-items:center;pointer-events:none}
+.vn-arte{width:auto;max-width:min(320px,86vw);max-height:430px;height:auto;display:block;margin:0 auto;object-fit:contain;object-position:bottom center;filter:drop-shadow(0 18px 40px rgba(0,0,0,.5))}
+.vn-etiqueta{margin-top:16px;text-align:center;font-size:15px;font-weight:700;letter-spacing:1px;color:#ffe9b0}
+.vn-etiqueta span{display:block;font-size:11px;font-weight:400;color:var(--ambar);letter-spacing:.5px}
+.vn-dialogo{
+  position:relative;width:min(960px,92vw);background:rgba(14,10,4,.78);
+  border:2px solid rgba(255,209,102,.3);border-radius:18px;padding:18px 22px 28px;
+  box-shadow:0 18px 60px rgba(0,0,0,.6);cursor:pointer;
+}
+.vn-interlocutor{font-family:var(--mono);font-size:12px;letter-spacing:1.2px;color:#e8b54a;margin-bottom:8px;display:flex;align-items:baseline;gap:10px}
+.vn-interlocutor span{font-family:var(--sans);font-size:10.5px;color:var(--t-3);letter-spacing:.5px}
+#vn-texto{margin:0;min-height:52px;font-size:16px;line-height:1.55;color:#f2e7cf}
+.vn-flecha{position:absolute;right:20px;bottom:10px;font-size:15px;color:var(--ambar);animation:vnParpadeo 1s steps(1) infinite}
+.vn-flecha.oculta{opacity:0}
+@keyframes vnParpadeo{0%,100%{opacity:1}50%{opacity:.15}}
+
+/* ---------- Tutorial guiado (coachmarks) ---------- */
+.tt{
+  position:fixed;z-index:300;width:300px;max-width:calc(100vw - 40px);
+  background:rgba(11,20,42,.94);border:2px solid var(--ambar);border-radius:12px;
+  padding:14px 16px;backdrop-filter:blur(6px);
+  box-shadow:0 0 0 4px rgba(255,209,102,.18),0 0 18px rgba(255,209,102,.45),0 14px 44px rgba(0,0,0,.6);
+  animation:ttPop .16s ease;
+}
+@keyframes ttPop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tt-paso{font-family:var(--mono);font-size:10px;color:var(--ambar);letter-spacing:1px;margin-bottom:6px}
+.tt-texto{margin:0 0 12px;font-size:13.5px;line-height:1.5;color:#eef3ff}
+.tt-texto b{color:#ffe9b0}
+.tt-siguiente{width:100%;justify-content:center;background:linear-gradient(180deg,#e8b54a,#c08f2e);border-color:var(--ambar);color:#241a08}
+.tt-siguiente:hover{background:linear-gradient(180deg,#f2c65e,#cf9c36);border-color:#ffe9b0}
+.tt-flecha{position:fixed;z-index:299;pointer-events:none}
+/* Modal "¿Saltear la introducción?" */
+.tt-overlay{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;background:rgba(4,7,16,.6);backdrop-filter:blur(3px);animation:ttOver .16s ease}
+@keyframes ttOver{from{opacity:0}to{opacity:1}}
+.tt-caja{width:340px;max-width:calc(100vw - 40px);background:rgba(11,20,42,.97);border:2px solid var(--ambar);border-radius:12px;padding:18px 16px;box-shadow:0 14px 44px rgba(0,0,0,.6);animation:ttPop .16s ease}
+.tt-botones{display:flex;gap:10px;margin-top:14px}
+.tt-botones .btn{flex:1;justify-content:center}
+
+/* ---------- Conceptos + feedback del jefe (resumen) ---------- */
+.conceptos-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:980px;margin:22px auto 0}
+.conceptos-lista{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:9px}
+.conceptos-lista li{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.4;color:var(--t)}
+.conceptos-lista li svg{flex:0 0 auto;width:15px;height:15px;margin-top:1px;color:var(--verde)}
+.conceptos-lista.repasar li svg{color:var(--ambar)}
+.conceptos-vacio{margin:10px 0 0;font-size:12.5px;color:var(--t-3)}
+.conceptos-vacio.ok{color:var(--verde)}
+.jefe-feedback{max-width:980px;margin:22px auto 0;background:linear-gradient(180deg,rgba(58,42,14,.5),rgba(30,22,8,.5));border:1px solid rgba(255,209,102,.3);border-radius:14px;padding:18px 20px}
+.jefe-feedback .jf-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.jefe-feedback .jf-ico{width:42px;height:42px;border-radius:11px;background:rgba(255,209,102,.16);color:var(--ambar);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.jefe-feedback .jf-ico svg{width:24px;height:24px}
+.jefe-feedback .jf-head b{display:block;font-size:14px;color:#ffe9b0}
+.jefe-feedback .jf-head span{font-size:11.5px;color:var(--t-3)}
+.jefe-feedback .jf-body{display:flex;flex-direction:column;gap:10px}
+.jefe-feedback .jf-linea{font-size:13.5px;line-height:1.55;color:var(--t)}
+.jefe-feedback .jf-linea.ok{color:var(--verde)}
+.jefe-feedback .jf-linea.warn{color:var(--ambar)}
+
 /* ---------- Resumen ---------- */
 .resumen-head{text-align:center;margin-bottom:24px}
 .resumen-head h2{margin:0;font-size:26px;font-weight:800;letter-spacing:.4px}
@@ -581,9 +676,16 @@ button{font-family:inherit;cursor:pointer}
   .usuario .ux{display:none}
   .view{padding:18px 14px 30px}
   .resumen-grid{grid-template-columns:1fr}
+  .conceptos-grid{grid-template-columns:1fr}
   .dnd-layout{grid-template-columns:1fr}
   .stamp{font-size:28px;letter-spacing:3px;padding:10px 16px;white-space:normal;text-align:center}
   .dt-head .chip{font-size:10px}
+  .vn-personaje{right:1%;bottom:175px;transform:scale(.7);transform-origin:bottom right}
+}
+@media (max-width:520px){
+  .vn-personaje{display:none}
+  .vn-dialogo{padding:14px 16px 24px}
+  #vn-texto{font-size:15px;min-height:64px}
 }
 @media (max-width:460px){
   .brand strong{font-size:13px;letter-spacing:1px}
@@ -607,6 +709,22 @@ button{font-family:inherit;cursor:pointer}
     <input id="login-user" type="text" placeholder="ej. areyes" autocomplete="off" />
     <button id="login-btn" class="btn btn-primary">Ingresar →</button>
     <div class="login-foot">Simulador de formación · NOC Support Ticket System · v1.0.0</div>
+  </div>
+</div>
+
+<!-- ===================== INTRO — ESCENA VISUAL NOVEL (primera vez) ===================== -->
+<div id="intro-vn" class="screen intro hidden">
+  <button id="intro-saltar" class="btn btn-ghost intro-saltar" type="button">Saltar intro</button>
+  <div class="vn-escena">
+    <div class="vn-personaje">
+      <img class="vn-arte" src="Documentacion/Imagenes Generadas/Imagen del Jefe.png" alt="Ricardo Salas">
+      <div class="vn-etiqueta">RICARDO SALAS<span>Jefe de Operaciones · NOC</span></div>
+    </div>
+    <div class="vn-dialogo" id="vn-dialogo" role="button" tabindex="0" aria-label="Diálogo: click para continuar">
+      <div class="vn-interlocutor">RICARDO SALAS<span>Jefe de Operaciones</span></div>
+      <p id="vn-texto"></p>
+      <span class="vn-flecha" id="vn-flecha">▶</span>
+    </div>
   </div>
 </div>
 
@@ -681,6 +799,14 @@ button{font-family:inherit;cursor:pointer}
       <path d="M12 8V4M12 8h0M8 12h.01M16 12h.01M12 16v0M9 15h.01M15 15h.01"/>
       <path d="M12 4 8.5 6.5M12 4l3.5 2.5"/>
       <path d="M2 13v3M22 13v3"/>
+    </g>
+  </symbol>
+  <symbol id="jefe-ico" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="6.6" r="3.3"/>
+      <path d="M4.8 20.5c0-3.9 3.2-6.3 7.2-6.3s7.2 2.4 7.2 6.3"/>
+      <path d="M12 14.2v1.6"/>
+      <path d="M12 15.8l-1.4 1.9L12 21l1.4-3.3z"/>
     </g>
   </symbol>
 </svg>
@@ -762,11 +888,12 @@ function ic(nombre){ return SVG[nombre]||""; }
 /* ----------------------- CONTENIDO ----------------------- */
 const FASES = [
   {
-    id:1, nombre:"Fase 1", turno:"Turno mañana", titulo:"Conectividad básica",
+    id:1, nombre:"Fase 1", turno:"Prioridad Alta", titulo:"Conectividad básica",
     icono:"red", colorVar:"fase1", cliente:"Oficina Central, NEXUS Corp",
     tickets:[
       {
         id:"1.1", asunto:"Red lenta y colisiones en Sucursal Nueva", prioridad:"media",
+        concepto:"Hub/Switch y dominios de colisión",
         cliente:"Sucursal Nueva", fecha:"Lun 12/01/2026", hora:"08:05",
         descripcion:"En la sucursal nueva conectamos 10 PCs a un mismo equipo y ahora todos ven el tráfico de todos, se generan colisiones y la red está muy lenta.",
         tipo:"opciones-con-icono", pregunta:"¿Cuál de estos dispositivos está causando el problema?",
@@ -786,6 +913,7 @@ const FASES = [
       },
       {
         id:"1.2", asunto:"Identificación de topología", prioridad:"media",
+        concepto:"Topología en estrella",
         cliente:"Oficina Central, NEXUS Corp", fecha:"Lun 12/01/2026", hora:"08:32",
         descripcion:"Se adjunta el diagrama de la red actual de la oficina. Necesitamos identificar qué tipo de topología es, porque vamos a documentarla para el plan de contingencia.",
         tipo:"diagrama", pregunta:"Según el diagrama, ¿qué topología tiene la red?",
@@ -804,6 +932,7 @@ const FASES = [
       },
       {
         id:"1.3", asunto:"Corte de comunicación - Modelo OSI", prioridad:"media",
+        concepto:"Modelo OSI",
         cliente:"Oficina Central, NEXUS Corp", fecha:"Lun 12/01/2026", hora:"09:10",
         descripcion:"El proveedor de soporte de nivel 3 pide que identifiquemos en qué capa se cortó la comunicación. Ordená correctamente las capas del modelo OSI, desde la más baja hasta la más alta.",
         tipo:"osi",
@@ -819,11 +948,12 @@ const FASES = [
     ]
   },
   {
-    id:2, nombre:"Fase 2", turno:"Turno tarde", titulo:"Servicios caídos",
+    id:2, nombre:"Fase 2", turno:"Prioridad Media", titulo:"Servicios caídos",
     icono:"engranaje", colorVar:"fase2", cliente:"Oficina Central, NEXUS Corp",
     tickets:[
       {
         id:"2.1", asunto:"Sin internet - IP extraña asignada", prioridad:"alta",
+        concepto:"DHCP / APIPA",
         cliente:"Oficina Central, NEXUS Corp", fecha:"Mar 13/01/2026", hora:"13:15",
         descripcion:"Un usuario reporta que no tiene internet, dice que apareció una IP rara. Revisamos la configuración del equipo y este es el resultado.",
         tipo:"consola",
@@ -862,6 +992,7 @@ const FASES = [
       },
       {
         id:"2.2", asunto:"La web no carga por nombre", prioridad:"media",
+        concepto:"DNS / Resolución de nombres",
         cliente:"Oficina Central, NEXUS Corp", fecha:"Mar 13/01/2026", hora:"14:02",
         descripcion:"El usuario dice que la web no carga por nombre, pero si pone la IP directamente sí funciona. Ejecutamos una consulta de resolución para verificar.",
         tipo:"consola",
@@ -894,6 +1025,7 @@ const FASES = [
       },
       {
         id:"2.3", asunto:"No resuelve nombres de equipos", prioridad:"media",
+        concepto:"NetBIOS / Hostnames",
         cliente:"Oficina Central, NEXUS Corp", fecha:"Mar 13/01/2026", hora:"14:47",
         descripcion:"En la doc vieja del cliente aparecen nombres de PC tipo \PC-VENTAS, pero el sistema nuevo pide todo por IP/hostname. Probamos acceder al equipo usando ese nombre simple de red (sin dominio).",
         tipo:"consola",
@@ -924,11 +1056,12 @@ const FASES = [
     ]
   },
   {
-    id:3, nombre:"Fase 3", turno:"Turno noche", titulo:"Diseño y seguridad",
+    id:3, nombre:"Fase 3", turno:"Prioridad Baja", titulo:"Diseño y seguridad",
     icono:"escudo", colorVar:"fase3", cliente:"Oficina Central, NEXUS Corp",
     tickets:[
       {
         id:"3.1", asunto:"Publicación segura de servidor web", prioridad:"alta",
+        concepto:"Firewall / DMZ / Gateway",
         cliente:"Oficina Central, NEXUS Corp", fecha:"Mié 14/01/2026", hora:"20:10",
         descripcion:"Vamos a exponer un servidor web al público sin comprometer la red interna. Armá el esquema arrastrando los dispositivos a su posición correcta.",
         tipo:"firewall",
@@ -946,6 +1079,7 @@ const FASES = [
       },
       {
         id:"3.2", asunto:"Ranking de enlaces entre sucursales", prioridad:"alta",
+        concepto:"Enlaces WAN (Costo vs Performance)",
         cliente:"Oficina Central, NEXUS Corp", fecha:"Mié 14/01/2026", hora:"21:25",
         descripcion:"El cliente tiene 6 sucursales y pide que rankeemos las opciones de enlace por costo/performance. Ordená las opciones de la 1 (más conveniente) a la 6 (menos conveniente).",
         tipo:"ranking",
@@ -968,6 +1102,7 @@ const FASES = [
       },
       {
         id:"3.3", asunto:"Dos direcciones IP en el servidor nuevo", prioridad:"media",
+        concepto:"IPv4 vs IPv6",
         cliente:"Oficina Central, NEXUS Corp", fecha:"Mié 14/01/2026", hora:"22:40",
         descripcion:"El servidor nuevo muestra dos direcciones distintas en la config de red. Ejecutamos ipconfig para verificar.",
         tipo:"consola",
@@ -1017,13 +1152,26 @@ function estadoInicial(){
   FASES.forEach(f=>f.tickets.forEach(t=>mapa[t.id]="pendiente"));
   return mapa;
 }
+// Estructura base de una partida nueva (se persiste completa en localStorage).
+function partidaNueva(){
+  return {
+    tickets: estadoInicial(),
+    ordenResolucion: [],    // [{id, fase, prioridad, timestamp}] en orden de primer intento
+    primerIntento: {}       // {idTicket: true|false} resultado del primer verificar
+  };
+}
+// Compatibilidad con partidas guardadas antes de estos requerimientos.
+function normalizarPartida(p){
+  if(!p || typeof p!=="object" || !p.tickets) return null;
+  if(!Array.isArray(p.ordenResolucion)) p.ordenResolucion = [];
+  if(!p.primerIntento || typeof p.primerIntento!=="object") p.primerIntento = {};
+  return p;
+}
 function loadPartida(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     if(!raw) return null;
-    const d = JSON.parse(raw);
-    if(!d || typeof d!=="object" || !d.tickets) return null;
-    return d;
+    return normalizarPartida(JSON.parse(raw));
   }catch(e){ return null; }
 }
 function savePartida(){
@@ -1032,12 +1180,51 @@ function savePartida(){
 }
 function resetPartida(){
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
-  partida = { tickets: estadoInicial() };
+  partida = partidaNueva();
   savePartida();
 }
 if(!partida){
   partida = loadPartida();
-  if(!partida){ partida = { tickets: estadoInicial() }; }
+  if(!partida){ partida = partidaNueva(); }
+}
+
+/* Prioridad: menor valor = más urgente. Usado para validar el orden. */
+const RANGO_PRIORIDAD = { alta:0, media:1, baja:2 };
+let respetoPrioridad = true; // se recalcula en calcularRespetoPrioridad()
+// Registra el primer intento de un ticket (orden + acierto). Los
+// reintentos posteriores no se vuelven a registrar.
+function registrarIntento(t, correcto, faseIdx){
+  if(!partida.ordenResolucion.some(o=>o.id===t.id)){
+    partida.ordenResolucion.push({
+      id: t.id, fase: FASES[faseIdx].id, prioridad: t.prioridad, timestamp: Date.now()
+    });
+  }
+  if(!(t.id in partida.primerIntento)){
+    partida.primerIntento[t.id] = !!correcto;
+  }
+  savePartida();
+}
+// ¿Se respetó el orden Alta → Media → Baja dentro de cada fase?
+// Marca una inversión si un ticket de menor urgencia se resolvió antes
+// que uno de mayor urgencia dentro de la misma fase.
+function calcularRespetoPrioridad(){
+  const porFase = {};
+  let global = true;
+  FASES.forEach(fase=>{
+    const seq = partida.ordenResolucion.filter(o=>o.fase===fase.id);
+    let respeta = true;
+    for(let i=0;i<seq.length;i++){
+      for(let j=i+1;j<seq.length;j++){
+        if(RANGO_PRIORIDAD[seq[i].prioridad] > RANGO_PRIORIDAD[seq[j].prioridad]){
+          respeta = false;
+        }
+      }
+    }
+    porFase[fase.id] = respeta;
+    if(!respeta) global = false;
+  });
+  respetoPrioridad = global;
+  return { porFase, global };
 }
 
 function getTicket(faseIdx, tickIdx){ return FASES[faseIdx].tickets[tickIdx]; }
@@ -1079,6 +1266,13 @@ function toast(msg){
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=>el.classList.remove("show"), 2600);
 }
+// Sube la página al tope al cambiar de vista. El scroll real ocurre en el
+// contenedor .main (overflow-y:auto), además de la ventana por si acaso.
+function irArriba(){
+  const main = typeof document!=="undefined" && document.querySelector ? document.querySelector(".main") : null;
+  if(main) main.scrollTop = 0;
+  if(typeof window!=="undefined" && window.scrollTo) window.scrollTo(0,0);
+}
 
 /* ============================================================
    NAVEGACIÓN
@@ -1095,6 +1289,7 @@ function irInicio(){
   $("#view-fase").classList.add("hidden");
   $("#view-resumen").classList.add("hidden");
   setFabVisible(false);
+  irArriba();
   renderInicio();
 }
 function irFase(faseIdx){
@@ -1110,6 +1305,7 @@ function irFase(faseIdx){
   // Se muestra solo la cola: el detalle lo abre el ticket que
   // seleccione el usuario (sin auto-relatar el primero).
   setFabVisible(false);
+  irArriba();
   renderFase(faseIdx, null);
 }
 function irResumen(){
@@ -1119,6 +1315,7 @@ function irResumen(){
   $("#view-fase").classList.add("hidden");
   $("#view-resumen").classList.remove("hidden");
   setFabVisible(false);
+  irArriba();
   renderResumen();
 }
 function setNav(activo){
@@ -1184,7 +1381,7 @@ function renderInicio(){
       html += '<span class="t-id">#'+t.id+'</span>';
       html += '<span class="t-asunto">'+esc(t.asunto)+'</span>';
       html += '<span class="chip '+ESTADO_CHIP[est]+'"><span class="dot"></span>'+ESTADO_NOMBRE[est]+'</span>';
-      html += '<span class="chip '+PRIORIDAD_CHIP[t.prioridad]+'">'+PRIORIDAD_NOMBRE[t.prioridad]+'</span>';
+      html += '<span class="chip '+PRIORIDAD_CHIP[t.prioridad]+'">COMPLEJIDAD: '+PRIORIDAD_NOMBRE[t.prioridad]+'</span>';
       html += '</li>';
     });
     html += '</ul></div>';
@@ -1212,12 +1409,37 @@ function renderInicio(){
 }
 
 function reiniciarFlujo(){
-  if(!confirm("¿Reiniciar todo el recorrido de formación? Se perderá el progreso actual.")) return;
-  resetPartida();
-  pistasPorTicket = {};
-  pistasAgotadasPorTicket = {};
-  irInicio();
-  toast("Recorrido reiniciado.");
+  confirmarModal({
+    titulo:"Reiniciar recorrido",
+    mensaje:"<b>¿Reiniciar todo el recorrido de formación?</b> Se perderá el progreso actual.",
+    confirmar:"Reiniciar",
+    onOk(){
+      resetPartida();
+      pistasPorTicket = {};
+      pistasAgotadasPorTicket = {};
+      irInicio();
+      toast("Recorrido reiniciado.");
+    }
+  });
+}
+// Modal de confirmación con el diseño del juego (reutiliza el estilo del
+// popUp de ayuda). Reemplaza al nativo confirm().
+function confirmarModal(opts){
+  if($("#mod-modal")) return;
+  const m=document.createElement("div");
+  m.id="mod-modal";
+  m.className="tt-overlay";
+  m.innerHTML='<div class="tt-caja">'+
+    '<div class="tt-paso">'+esc(opts.titulo||"Atención")+'</div>'+
+    '<p class="tt-texto">'+ (opts.mensaje||"") +'</p>'+
+    '<div class="tt-botones">'+
+    '<button class="btn btn-ghost mod-no" type="button">'+esc(opts.cancelar||"Cancelar")+'</button>'+
+    '<button class="btn btn-primary mod-si" type="button">'+esc(opts.confirmar||"Confirmar")+'</button>'+
+    '</div></div>';
+  document.body.appendChild(m);
+  m.addEventListener("click", e=>{ e.stopPropagation(); });
+  m.querySelector(".mod-no").addEventListener("click", ()=>{ m.remove(); if(opts.onCancel) opts.onCancel(); });
+  m.querySelector(".mod-si").addEventListener("click", ()=>{ m.remove(); if(opts.onOk) opts.onOk(); });
 }
 
 /* ============================================================
@@ -1228,6 +1450,7 @@ function renderFase(faseIdx, ticketId){
   const fase = FASES[faseIdx];
   const resueltos = fase.tickets.filter(t=>estadoTicket(t.id)==="resuelto").length;
   const respondidos = fase.tickets.filter(t=>estadoTicket(t.id)!=="pendiente").length;
+  irArriba();
 
   let html = '<div class="fase-top">';
   html += '<div class="f-icon f'+(faseIdx+1)+'">'+ic(fase.icono)+'</div>';
@@ -1238,7 +1461,7 @@ function renderFase(faseIdx, ticketId){
 
   /* --- Cola --- */
   html += '<div class="queue-panel">';
-  html += '<h3>Tickets del turno</h3>';
+  html += '<h3>Tickets de la fase</h3>';
   html += '<div class="queue-turno">Fase '+fase.id+' de 3</div>';
   const pct = (respondidos/3)*100;
   html += '<div class="q-progress"><div class="progress-bar"><i style="width:'+pct+'%;background:var(--'+(fase.colorVar)+')"></i></div><span class="q-count">'+respondidos+'/3</span></div>';
@@ -1249,7 +1472,7 @@ function renderFase(faseIdx, ticketId){
     html += '<span class="qt-id" style="color:var(--'+(fase.colorVar)+')">#'+t.id+'</span>';
     html += '<span class="qt-right">';
     html += '<span class="chip '+ESTADO_CHIP[est]+'">'+ESTADO_NOMBRE[est]+'</span>';
-    html += '<span class="chip '+PRIORIDAD_CHIP[t.prioridad]+'">PRIORIDAD: '+PRIORIDAD_NOMBRE[t.prioridad]+'</span>';
+    html += '<span class="chip '+PRIORIDAD_CHIP[t.prioridad]+'">COMPLEJIDAD: '+PRIORIDAD_NOMBRE[t.prioridad]+'</span>';
     html += '</span>';
     html += '<span class="qt-asunto">'+esc(t.asunto)+'</span>';
     html += '</button>';
@@ -1301,7 +1524,7 @@ function abrirTicket(tid){
 
   let h = '<div class="dt-head">';
   h += '<span class="dt-id" style="color:var(--'+(fase.colorVar)+')">Ticket #'+t.id+'</span>';
-  h += '<span class="chip '+PRIORIDAD_CHIP[t.prioridad]+'">PRIORIDAD: '+PRIORIDAD_NOMBRE[t.prioridad]+'</span>';
+  h += '<span class="chip '+PRIORIDAD_CHIP[t.prioridad]+'">COMPLEJIDAD: '+PRIORIDAD_NOMBRE[t.prioridad]+'</span>';
   if(respondido){
     h += '<span class="chip '+ESTADO_CHIP[est]+'"><span class="dot"></span>'+ESTADO_NOMBRE[est]+'</span>';
   }
@@ -1312,7 +1535,7 @@ function abrirTicket(tid){
   h += '<div class="m-field"><div class="m-label">Asunto</div><div class="m-value">'+esc(t.asunto)+'</div></div>';
   h += '<div class="m-field"><div class="m-label">Cliente</div><div class="m-value">'+esc(t.cliente||fase.cliente)+'</div></div>';
   h += '<div class="m-field"><div class="m-label">Fecha y hora</div><div class="m-value">'+esc(t.fecha)+' · '+esc(t.hora)+' hs</div></div>';
-  h += '<div class="m-field"><div class="m-label">Turno y fase</div><div class="m-value">'+esc(fase.turno)+' · '+fase.id+'/3</div></div>';
+  h += '<div class="m-field"><div class="m-label">Prioridad y fase</div><div class="m-value">'+esc(fase.turno)+' · Fase '+fase.id+' de 3</div></div>';
   h += '</div>';
 
   h += '<div class="dt-incidente"><h4>Descripción del incidente</h4>';
@@ -1559,6 +1782,15 @@ function armadoInteraccion(t, opts){
 }
 
 /* ---- opciones múltiples ---- */
+// Assets reales .png para las 4 opciones del ticket 1.1 (Hub/Repetidor/
+// Router/Switch). Ruta esperada: Documentacion/Imagenes Generadas/<nombre>.
+// Si el archivo no existe, la función cae al ícono SVG como fallback.
+const IMAGENES_TICKET_11 = {
+  hub:"Documentacion/Imagenes Generadas/Imagen HUB.png",
+  repetidor:"Documentacion/Imagenes Generadas/Imagen de Repetidor.png",
+  router:"Documentacion/Imagenes Generadas/Imagen de Router.png",
+  sw:"Documentacion/Imagenes Generadas/Imagen de Switch.png"
+};
 function opcionesHTML(opciones, conIcono, correctaId){
   const cls = conIcono ? "options-list" : "options-list plain";
   let html = '<div class="'+cls+'" data-opciones>';
@@ -1566,7 +1798,14 @@ function opcionesHTML(opciones, conIcono, correctaId){
     let estado = "";
     if(correctaId){ estado = o.id===correctaId ? " correct":" locked"; }
     html += '<button type="button" class="option'+estado+'" data-opt="'+o.id+'"'+(correctaId?" disabled":"")+'>';
-    if(conIcono){ html += '<span class="opt-icon">'+ic(o.icono)+'</span><span>'+esc(o.t)+'</span>'; }
+    if(conIcono){
+      const ruta = IMAGENES_TICKET_11[o.icono];
+      if(ruta){
+        html += '<span class="opt-icon con-imagen"><img src="'+ruta+'" alt="'+esc(o.t)+'" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px"></span><span>'+esc(o.t)+'</span>';
+      }else{
+        html += '<span class="opt-icon">'+ic(o.icono)+'</span><span>'+esc(o.t)+'</span>';
+      }
+    }
     else{
       html += '<span class="opt-radio" aria-hidden="true"></span>';
       html += '<span>'+esc(o.t)+'</span>';
@@ -1852,6 +2091,8 @@ function verificar(zonaIn, t){
   // Solo navegamos al resumen si esta respuesta COMPLETA la fase por
   // primera vez (evita saltar al resumen al reintentar un fallado).
   const { faseIdx } = findTicketMeta(t.id);
+  // Registra orden de resolución y resultado del PRIMER intento (Req. 2).
+  registrarIntento(t, correcto, faseIdx);
   const faseCompletaAhora = faseRespondida(faseIdx);
 
   // Marcar estado
@@ -1875,7 +2116,7 @@ function verificar(zonaIn, t){
       divAcc.className = "fb-acciones";
       const btnR = document.createElement("button");
       btnR.type = "button";
-      btnR.className = "btn btn-primary";
+      btnR.className = "btn btn-primary tt-reintentar";
       btnR.setAttribute("data-acc","reintentar");
       btnR.textContent = "↻ Reintentar";
       divAcc.appendChild(btnR);
@@ -1892,7 +2133,7 @@ function verificar(zonaIn, t){
   if(!faseCompletaAhora && faseRespondida(faseIdx)){
     if(faseIdx===FASES.length-1){
       setTimeout(()=>{ irResumen(); }, 1300);
-      toast(faseCompleta(faseIdx)?"Fase 3 completada → Resumen":"Turno cerrado → Resumen final");
+      toast(faseCompleta(faseIdx)?"Fase 3 completada → Resumen":"Fase cerrada → Resumen final");
       return;
     }
   }
@@ -2104,10 +2345,9 @@ function construirPanelAsistente(){
 function horaAhora(){
   const d=new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
 }
-function agregarMsgAsistente(texto, delay){
-  const cuerpo = $("#chat-cuerpo");
-  if(!cuerpo) return;
-  const cont = cuerpo;
+function agregarMsgAsistente(texto, delay, contenedor){
+  const cont = contenedor || $("#chat-cuerpo");
+  if(!cont) return;
   if(delay){
     const ind = document.createElement("div");
     ind.className="msg msg-assist"; ind.innerHTML='<div class="burbuja"><span class="typing-ind"><i></i><i></i><i></i></span></div>';
@@ -2216,14 +2456,449 @@ function enviarMensaje(texto){
 }
 
 /* ============================================================
+   PERSONAJE + INTRO (escena visual novel) + TUTORIAL guiado
+   ============================================================ */
+// Datos del jefe (reusados por el feedback del Resumen; sin pop-up).
+const JEFE = { nombre:"Ricardo Salas", cargo:"Jefe de Operaciones · NOC" };
+
+/* ----------------------- INTRO (visual novel) ----------------------- */
+const INTRO_KEY = "nexus-noc-intro-vista";
+const INTRO = {
+  abierto:false, idx:0, escribiendo:false, timers:[],
+  lineas:[
+    "¡Hola! Qué bueno que te conectaste temprano hoy.",
+    "Llegaron 9 tickets urgentes que necesitamos atender. Para empezar, iniciá sesión con tus credenciales.",
+    "Los tickets ya están organizados por prioridad para que puedas resolver primero los más urgentes.",
+    "Antes de cerrar el día te doy un pequeño feedback para revisar cómo te fue. ¡Éxitos!"
+  ],
+  finalizado(){
+    try{ return localStorage.getItem(INTRO_KEY)==="1"; }catch(e){ return false; }
+  },
+  iniciar(){
+    if(this.finalizado()) return;
+    this.abierto=true; this.idx=0;
+    const login=$("#pantalla-login"); if(login) login.classList.add("desenfocado");
+    const p=$("#intro-vn"); if(p) p.classList.remove("hidden");
+    const f=$("#vn-flecha"); if(f) f.classList.add("oculta");
+    // La música de ambiente arranca junto con la intro del jefe: se intenta
+    // acá y se desbloquea con el primer click/tecla (política de autoplay).
+    encenderMotor();
+    this.mostrarLinea(0);
+  },
+  mostrarLinea(i){
+    const el=$("#vn-texto"); if(!el) return;
+    this.idx=i; this.escribiendo=true;
+    el.textContent="";
+    const texto=this.lineas[i];
+    let k=0;
+    const paso=()=>{
+      if(!this.abierto) return;
+      k++;
+      el.textContent=texto.slice(0,k);
+      if(k < texto.length){ INTRO.timers.push(setTimeout(paso, 26)); }
+      else{
+        this.escribiendo=false;
+        const f=$("#vn-flecha"); if(f) f.classList.remove("oculta"); // ▶ parpadea: puede continuar
+      }
+    };
+    this.timers.push(setTimeout(paso, 320));
+  },
+  avanzar(){
+    if(!this.abierto) return;
+    const el=$("#vn-texto");
+    // Si está escribiendo, el click completa la línea en vez de avanzar.
+    if(this.escribiendo && el && el.textContent.length < this.lineas[this.idx].length){
+      this.timers.forEach(t=>clearTimeout(t)); this.timers=[];
+      this.escribiendo=false;
+      el.textContent=this.lineas[this.idx];
+      const f=$("#vn-flecha"); if(f) f.classList.remove("oculta");
+      return;
+    }
+    if(this.idx < this.lineas.length-1){ this.mostrarLinea(this.idx+1); }
+    else{ this.terminar(); }
+  },
+  terminar(){
+    this.abierto=false;
+    this.timers.forEach(t=>clearTimeout(t)); this.timers=[];
+    try{ localStorage.setItem(INTRO_KEY,"1"); }catch(e){}
+    const p=$("#intro-vn"); if(p) p.classList.add("hidden");
+    const login=$("#pantalla-login"); if(login) login.classList.remove("desenfocado");
+  }
+};
+if($("#intro-vn")){
+  $("#intro-vn").addEventListener("click", e=>{
+    if(e.target.closest("#intro-saltar")){ INTRO.terminar(); return; } // saltar
+    INTRO.avanzar();
+  });
+}
+document.addEventListener("keydown", e=>{
+  if(!INTRO.abierto) return;
+  if(e.key==="Enter" || e.key===" "){ e.preventDefault(); INTRO.avanzar(); }
+});
+
+/* ----------------------- TUTORIAL (coachmarks) ----------------------- */
+const TUTORIAL_KEY = "nexus-noc-tutorial-visto";
+// Demo guiada 100% por el popUp de ayuda: cada "Siguiente"/"Entendido"
+// avanza al próximo paso y, si hace falta, navega/ejecuta la acción para
+// que el elemento a señalar aparezca en pantalla. Al terminar se reinicia
+// la partida y los tickets quedan sin responder, listos para jugar.
+const TUTORIAL = {
+  activo:false, paso:-1, el:null, flecha:null, mostradoEn:0, demostro:false,
+  pasos:[
+    { selector:'[data-fase="0"]',
+      texto:"Este es el <b>primer grupo de tickets</b> de tu turno: una fase con incidentes que tenés que ir resolviendo." },
+    { selector:'[data-fase="0"]',
+      texto:"Hacé <b>click en 'Entrar a la fase'</b> para ver los tickets en detalle." },
+    { selector:'[data-abrir="1.1"]',
+      accion:()=> irFase(0),
+      texto:"Hacé <b>click sobre un ticket</b> de la cola para ver el <b>scope del incidente</b> y empezar a resolverlo." },
+    { selector:'#btn-verificar',
+      accion:()=> abrirTicket("1.1"),
+      texto:"Leé el scope, elegí la opción correcta y, una vez respondido, seleccioná <b>'Verificar respuesta'</b>." },
+    { selector:'.tt-reintentar',
+      accion:()=> demostrarError(),
+      texto:"Mirá: si la respuesta quedó <b>incorrecta</b>, aparece la opción de <b>Reintentar</b> para volver a responderla." },
+    { selector:'#panel-asistente',
+      accion:()=> abrirAsistente(),
+      texto:"¿No estás seguro de qué elegir? Podés pedir una <b>pista</b> con el <b>asistente de IA</b>: te da una sugerencia para resolver esa pregunta." },
+    { selector:'#panel-asistente',
+      texto:"Reglas de las pistas: como mucho <b>2 pistas por ticket</b> y en total tenés <b>3 tokens</b> en todo el recorrido, así que usalos con criterio." },
+    { selector:'#btn-siguiente',
+      accion:()=> { try{ cerrarAsistente(); }catch(err){} demostrarCorrecto(); },
+      texto:"Esta vez la respuesta fue <b>correcta</b> y <b>Siguiente</b> quedó habilitado para pasar al próximo ticket." },
+    { selector:'[data-b="reiniciar"]',
+      accion:()=> irInicio(),
+      texto:"El botón <b>'Reiniciar recorrido'</b> vuelve a empezar la partida desde cero en cualquier momento." }
+  ],
+  // progreso: cantidad de pasos completados (0..8), persistido en localStorage
+  // como "9:<n>" (prefijo = cantidad de pasos de esta versión). Los valores
+  // viejos sin prefijo corresponden a versiones previas de 6/7 pasos.
+  leer(){
+    try{
+      const v = localStorage.getItem(TUTORIAL_KEY);
+      if(v==="completado") return this.pasos.length;
+      if(typeof v==="string" && v.indexOf("9:")===0){
+        const n = parseInt(v.slice(2), 10);
+        return isNaN(n) ? 0 : n;
+      }
+      const n = parseInt(v||"0", 10);
+      if(isNaN(n)) return 0;
+      // Versiones previas (6 o 7 pasos): "6" y "7" significaban tur completo.
+      if(n>=6) return this.pasos.length;
+      return n;
+    }catch(e){ return this.pasos.length; }
+  },
+  guardar(p){
+    try{ localStorage.setItem(TUTORIAL_KEY, "9:"+String(p)); }catch(e){}
+  },
+  listo(){ return this.leer()>=this.pasos.length; },
+  // Muestra el paso i solo si es el siguiente en cola (orden estricto).
+  // Antes de mostrarlo ejecuta su acción de navegación/ejecución automática.
+  dispararPaso(i){
+    if(this.listo() || this.activo) return;
+    const p = this.leer();
+    if(i!==p) return;
+    this.paso=i;
+    const defs=this.pasos[i];
+    if(defs && defs.accion) defs.accion();
+    this.mostrarPaso();
+  },
+  // Avanza un paso ("Siguiente" / "Entendido" / click afuera).
+  completarSi(i){
+    if(this.listo()) return;
+    const p = this.leer();
+    if(i!==p) return;
+    this.limpiar();
+    this.activo=false;
+    const seguir = i+1;
+    this.guardar(seguir);
+    if(seguir < this.pasos.length){
+      setTimeout(()=>{ if(!this.listo() && this.leer()===seguir) this.dispararPaso(seguir); }, 180);
+    }else{
+      // Fin de la introducción: se reinicia y los tickets quedan sin responder.
+      try{
+        pistasPorTicket = {}; pistasAgotadasPorTicket = {};
+        resetPartida(); irInicio();
+      }catch(err){ /* entorno sin DOM completo */ }
+    }
+  },
+  iniciar(){
+    if(this.listo()) return;
+    // Si la sesión anterior quedó a mitad de camino, se retoma el paso pendiente.
+    const p = Math.min(this.leer(), this.pasos.length-1);
+    setTimeout(()=> this.dispararPaso(p), 450);
+  },
+  saltear(){
+    this.limpiar();
+    this.activo=false;
+    this.guardar(this.pasos.length);
+    const m=$("#tt-saltear"); if(m) m.remove();
+    // Si la demo ya verificó algún ticket, se deja la partida sin respuestas.
+    if(this.demostro){ try{ pistasPorTicket = {}; pistasAgotadasPorTicket = {}; resetPartida(); irInicio(); }catch(err){} }
+  },
+  mostrarPaso(){
+    this.limpiar();
+    const defs=this.pasos[this.paso];
+    const target=defs ? document.querySelector(defs.selector) : null;
+    if(!target || target.getBoundingClientRect().width===0) return;
+    // Si el elemento señalado queda fuera de la vista (p. ej. el botón
+    // "Verificar respuesta" al final de la página) se acerca antes de
+    // posicionar el tooltip, para que la flecha no apunte al borde.
+    const pr=target.getBoundingClientRect();
+    const vh=(window.innerHeight||document.documentElement.clientHeight)||600;
+    if(pr.bottom > vh - 80 || pr.top < 140){
+      if(typeof target.scrollIntoView==="function") target.scrollIntoView({ block:"center", inline:"nearest", behavior:"auto" });
+    }
+    this.activo=true;
+    this.el=document.createElement("div"); this.el.className="tt";
+    const etiqueta = "Paso "+(this.paso+1)+" de "+this.pasos.length;
+    const boton = this.paso===this.pasos.length-1 ? "Entendido" : "Siguiente";
+    this.el.innerHTML = '<div class="tt-paso">'+etiqueta+'</div>'+
+      '<p class="tt-texto">'+defs.texto+'</p>'+
+      '<button class="btn btn-primary tt-siguiente" type="button">'+boton+'</button>';
+    document.body.appendChild(this.el);
+    this.mostradoEn = Date.now();
+    posicionarCoachmark(this.el, target);
+    this.flecha=dibujarFlechaCoachmark(this.el, target);
+  },
+  limpiar(){
+    if(this.el && this.el.parentNode) this.el.parentNode.removeChild(this.el);
+    if(this.flecha && this.flecha.parentNode) this.flecha.parentNode.removeChild(this.flecha);
+    this.el=null; this.flecha=null;
+  }
+};
+// Auto-demostración del paso 5: elige una opción INCORRECTA y valida,
+// para que el usuario vea el feedback "Reintentar". Marca la demo.
+function demostrarError(){
+  if(!ticketActual) return;
+  const m = findTicketMeta(ticketActual);
+  const t = getTicket(m.faseIdx, m.tickIdx);
+  const zona = $("#zona-resolucion");
+  if(!zona) return;
+  const opts = opcionesContenedor(zona);
+  if(!opts) return;
+  const lista = $$(".option", opts);
+  const err = lista.find(o=>o.dataset.opt!==t.correcta) || lista[0];
+  if(!err) return;
+  $$(".option", opts).forEach(x=>x.classList.remove("selected"));
+  err.classList.add("selected");
+  TUTORIAL.demostro = true;
+  verificar(zona, t);
+}
+// Auto-demostración del paso 6: reintenta el ticket fallado y esta vez
+// elige la opción CORRECTA, dejando el feedback "Correcto" antes del cierre.
+function demostrarCorrecto(){
+  TUTORIAL.demostro = true;
+  if(!ticketActual) return;
+  const m = findTicketMeta(ticketActual);
+  const t = getTicket(m.faseIdx, m.tickIdx);
+  let zona = $("#zona-resolucion");
+  if(!zona) return;
+  if(estadoTicket(t.id)==="fallado" && reintentarTicket){
+    reintentarTicket(t.id);
+    zona = $("#zona-resolucion") || zona;
+  }
+  const opts = opcionesContenedor(zona);
+  if(!opts) return;
+  const btn = $('.option[data-opt="'+t.correcta+'"]', opts);
+  if(!btn) return;
+  $$(".option", opts).forEach(x=>x.classList.remove("selected"));
+  btn.classList.add("selected");
+  verificar(zona, t);
+}
+// Posiciona el tooltip al COSTADO del elemento (flecha lateral), y si no
+// entra, debajo (o arriba). Guarda en dataset.anchor de dónde entra la flecha.
+function posicionarCoachmark(tt, target){
+  const r=target.getBoundingClientRect();
+  const tw=300;
+  const alto = tt.getBoundingClientRect().height || 0;
+  if(target.id==="fab-asistente"){
+    // El FAB está abajo a la derecha: tooltip a su izquierda, algo más arriba.
+    tt.style.right = Math.max(16, window.innerWidth - r.left + 18) + "px";
+    tt.style.top = Math.max(16, r.top - 150) + "px";
+    tt.dataset.anchor="fab";
+    return;
+  }
+  const ty = ()=> Math.max(10, Math.min(window.innerHeight - alto - 10, r.top + r.height/2 - alto/2));
+  // A la derecha del elemento
+  if(window.innerWidth - (r.right + 20) >= tw){
+    tt.style.left = (r.right + 20) + "px";
+    tt.style.top = ty() + "px";
+    tt.dataset.anchor="left"; // la flecha nace del borde izquierdo del tooltip
+    return;
+  }
+  // A la izquierda del elemento
+  if(r.left - 20 >= tw){
+    tt.style.left = (r.left - 20 - tw) + "px";
+    tt.style.top = ty() + "px";
+    tt.dataset.anchor="right"; // la flecha nace del borde derecho del tooltip
+    return;
+  }
+  // Debajo (o arriba si no entra)
+  const left = Math.max(12, Math.min(window.innerWidth - tw - 12, r.left + r.width/2 - tw/2));
+  tt.style.left = left + "px";
+  let top = r.bottom + 20;
+  if(top + alto + 20 > window.innerHeight && r.top - alto - 20 > 8){
+    top = r.top - alto - 20;
+    tt.dataset.anchor="bottom";
+  }else{
+    tt.dataset.anchor="top";
+  }
+  tt.style.top = top + "px";
+}
+// Flecha curva (SVG) que conecta el tooltip con el elemento señalado.
+function dibujarFlechaCoachmark(tt, target){
+  const tr=tt.getBoundingClientRect();
+  const sr=target.getBoundingClientRect();
+  const ns="http://www.w3.org/2000/svg";
+  const esFab = target.id==="fab-asistente";
+  let x1,y1,x2,y2;
+  if(esFab){ // desde el vértice inferior derecho del tooltip hacia el FAB
+    x1=tr.right+6; y1=tr.bottom;
+    x2=sr.left+sr.width*0.5; y2=sr.top+sr.height*0.35;
+  }else{
+    const anc = tt.dataset ? tt.dataset.anchor : "top";
+    if(anc==="left"){ // tooltip a la derecha del objetivo → flecha desde el borde izquierdo al borde derecho
+      x1=tr.left; y1=tr.top+tr.height/2;
+      x2=sr.right; y2=sr.top+sr.height/2;
+    }else if(anc==="right"){ // tooltip a la izquierda → flecha hacia el borde izquierdo
+      x1=tr.right; y1=tr.top+tr.height/2;
+      x2=sr.left; y2=sr.top+sr.height/2;
+    }else if(anc==="bottom"){ // tooltip arriba del objetivo → flecha hacia su borde superior
+      x1=tr.left+tr.width/2; y1=tr.bottom;
+      x2=sr.left+sr.width/2; y2=sr.top;
+    }else{ // tooltip debajo del objetivo → flecha hacia su borde inferior
+      x1=tr.left+tr.width/2; y1=tr.top;
+      x2=sr.left+sr.width/2; y2=sr.bottom;
+    }
+  }
+  const minx=Math.min(x1,x2)-24, miny=Math.min(y1,y2)-24;
+  const ancho=Math.abs(x2-x1)+48, alto=Math.abs(y2-y1)+48;
+  const X=(v)=>v-minx, Y=(v)=>v-miny;
+  const dx=x2-x1, dy=y2-y1;
+  const len=Math.hypot(dx,dy)||1;
+  const ox=-dy/len, oy=dx/len;
+  const curva=Math.min(26, len*0.16);
+  const cx=(x1+x2)/2+ox*curva, cy=(y1+y2)/2+oy*curva;
+  const svg=document.createElementNS(ns,"svg");
+  svg.setAttribute("class","tt-flecha");
+  svg.setAttribute("aria-hidden","true");
+  svg.style.left=minx+"px"; svg.style.top=miny+"px";
+  svg.style.width=ancho+"px"; svg.style.height=alto+"px";
+  svg.style.overflow="visible";
+  const path=document.createElementNS(ns,"path");
+  path.setAttribute("d","M"+X(x1).toFixed(1)+" "+Y(y1).toFixed(1)+" Q"+X(cx).toFixed(1)+" "+Y(cy).toFixed(1)+" "+X(x2).toFixed(1)+" "+Y(y2).toFixed(1));
+  path.setAttribute("fill","none"); path.setAttribute("stroke","rgba(255,209,102,.95)");
+  path.setAttribute("stroke-width","2.4"); path.setAttribute("stroke-linecap","round");
+  svg.appendChild(path);
+  const ang=Math.atan2(y2-cy, x2-cx);
+  const a1x=x2-9*Math.cos(ang-0.42), a1y=y2-9*Math.sin(ang-0.42);
+  const a2x=x2-9*Math.cos(ang+0.42), a2y=y2-9*Math.sin(ang+0.42);
+  const ah=document.createElementNS(ns,"polygon");
+  ah.setAttribute("points", X(x2).toFixed(1)+","+Y(y2).toFixed(1)+" "+X(a1x).toFixed(1)+","+Y(a1y).toFixed(1)+" "+X(a2x).toFixed(1)+","+Y(a2y).toFixed(1));
+  ah.setAttribute("fill","rgba(255,209,102,.95)");
+  svg.appendChild(ah);
+  document.body.appendChild(svg);
+  return svg;
+}
+// "¿Saltear la introducción?": cuando el usuario hace click afuera del
+// popUp de ayuda se DETIENE ese click (no se ejecuta la acción de la app,
+// así no se pierde el hilo del tutorial) y se pide confirmación. Solo si
+// confirma "Saltar" termina la introducción; "Seguir viendo" la mantiene.
+function preguntarSaltear(){
+  if($("#tt-saltear")) return;
+  const m=document.createElement("div");
+  m.id="tt-saltear";
+  m.className="tt-overlay";
+  m.innerHTML='<div class="tt-caja">'+
+    '<div class="tt-paso">Introducción</div>'+
+    '<p class="tt-texto">¿Querés <b>saltear la introducción</b> y empezar a jugar directamente?</p>'+
+    '<div class="tt-botones">'+
+    '<button class="btn btn-ghost tt-salto-no" type="button">Seguir viendo</button>'+
+    '<button class="btn btn-primary tt-salto-si" type="button">Saltar introducción</button>'+
+    '</div></div>';
+  document.body.appendChild(m);
+  m.addEventListener("click", e=>{ e.stopPropagation(); });
+  m.querySelector(".tt-salto-no").addEventListener("click", ()=> m.remove());
+  m.querySelector(".tt-salto-si").addEventListener("click", ()=> TUTORIAL.saltear());
+}
+// Captura: intercepta el click ANTES de que llegue a la app. Si el click
+// es afuera del tooltip (y pasado el margen del click que abrió la guía),
+// se cancela la propagación y se pregunta si quiere saltear.
+document.addEventListener("click", e=>{
+  if(e.target.closest && e.target.closest("#tt-saltear")) return;
+  if(!TUTORIAL.activo) return;
+  if(Date.now() - TUTORIAL.mostradoEn < 350) return;
+  if(e.target.closest && e.target.closest(".tt")) return;
+  e.preventDefault(); e.stopPropagation();
+  preguntarSaltear();
+}, true);
+// Burbuja: solo el botón del popUp avanza el tutorial.
+document.addEventListener("click", e=>{
+  if(e.target.closest && e.target.closest("#tt-saltear")) return;
+  if(!TUTORIAL.activo) return;
+  if(e.target.closest && e.target.closest(".tt-siguiente")){ TUTORIAL.completarSi(TUTORIAL.paso); }
+});
+
+/* ============================================================
    RESUMEN FINAL
    ============================================================ */
+// Clasifica los conceptos según el primer intento y el uso de pistas.
+function conceptosResumen(){
+  const manejados = [], repasar = [];
+  FASES.flatMap(f=>f.tickets).forEach(t=>{
+    const intento = partida.primerIntento[t.id];      // true | false | undefined
+    const pistas  = pistasPorTicket[t.id] || 0;
+    if(intento === undefined) return;                  // no respondido aún
+    if(intento === true && pistas === 0) manejados.push(t.concepto);
+    else repasar.push(t.concepto);                     // falló o necesitó pistas
+  });
+  return { manejados, repasar };
+}
+// Informe de desempeño redactado como "feedback del jefe".
+function feedbackJefe(){
+  const tickets   = FASES.flatMap(f=>f.tickets);
+  const total     = tickets.length;
+  const resueltos = tickets.filter(t=>estadoTicket(t.id)==="resuelto").length;
+  const errores   = tickets.filter(t=>partida.primerIntento[t.id]===false).length;
+  const pistas    = pistasTotalesUsadas();
+  const lineas    = [];
+
+  // 1) Desempeño general
+  if(errores === 0 && resueltos === total){
+    lineas.push({ cls:"ok", txt:"Cerrás el turno sin errores: "+total+"/"+total+" tickets correctos al primer intento. Impecable." });
+  }else if(errores <= 2){
+    lineas.push({ cls:"", txt:"Buen desempeño: "+resueltos+"/"+total+" tickets resueltos con "+errores+" error"+(errores===1?"":"es")+" en el primer intento." });
+  }else{
+    lineas.push({ cls:"warn", txt:"Turno con "+errores+" errores en el primer intento sobre "+total+" tickets. Repasá los conceptos marcados antes del próximo turno." });
+  }
+
+  // 2) Evaluación de prioridades
+  if(!respetoPrioridad){
+    lineas.push({ cls:"warn", txt:"Ojo: en algún turno no respetaste el orden de prioridad — eso en un NOC real puede costar caro." });
+  }else{
+    lineas.push({ cls:"ok", txt:"Respetaste el orden de prioridad por turno: primero Alta, después Media y Baja." });
+  }
+
+  // 3) Uso de pistas (el tope del juego es 3, así que "muchas" = agotarlas)
+  if(pistas === 0){
+    lineas.push({ cls:"ok", txt:"Resolviste todo sin pedir ayuda al asistente: criterio propio y bien fundamentado." });
+  }else if(pistas >= MAX_PISTAS_JUEGO){
+    lineas.push({ cls:"warn", txt:"Usaste las "+MAX_PISTAS_JUEGO+" pistas del recorrido: te conviene repasar la teoría para ganar autonomía." });
+  }else{
+    lineas.push({ cls:"", txt:"Usaste "+pistas+" de "+MAX_PISTAS_JUEGO+" pistas disponibles. Buen equilibrio entre autonomía y apoyo." });
+  }
+
+  return lineas.map(l=>'<div class="jf-linea '+l.cls+'">'+esc(l.txt)+'</div>').join("");
+}
+
 function renderResumen(){
   const vista = $("#view-resumen");
   const todas = FASES.flatMap(f=>f.tickets);
   const resueltas = todas.filter(t=>estadoTicket(t.id)==="resuelto");
   const falladas = todas.filter(t=>estadoTicket(t.id)==="fallado");
   const casoResuelto = falladas.length===0; // 0 fallidas = resuelto
+  calcularRespetoPrioridad(); // recalcula respetoPrioridad para el feedback
 
   let h = '<div class="resumen-head"><h2>Resumen final</h2><p>Resultados del recorrido de formación - NOC</p></div>';
 
@@ -2271,6 +2946,31 @@ function renderResumen(){
 
   h += '</div></div>'; // resumen-grid + stamp-wrap
 
+  /* Conceptos manejados / a repasar */
+  const { manejados, repasar } = conceptosResumen();
+  h += '<div class="conceptos-grid">';
+  h += '<div class="col-chips"><h3>Conceptos manejados</h3>';
+  if(manejados.length){
+    h += '<ul class="conceptos-lista">'+manejados.map(c=>'<li>'+ic("check")+'<span>'+esc(c)+'</span></li>').join("")+'</ul>';
+  }else{
+    h += '<p class="conceptos-vacio">Todavía no hay conceptos dominados al primer intento.</p>';
+  }
+  h += '</div>';
+  h += '<div class="col-chips"><h3>Conceptos a repasar</h3>';
+  if(repasar.length){
+    h += '<ul class="conceptos-lista repasar">'+repasar.map(c=>'<li>'+ic("alarma")+'<span>'+esc(c)+'</span></li>').join("")+'</ul>';
+  }else{
+    h += '<p class="conceptos-vacio ok">¡Sin conceptos pendientes! Respondiste todo al primer intento.</p>';
+  }
+  h += '</div></div>';
+
+  /* Feedback del jefe */
+  h += '<div class="jefe-feedback">';
+  h += '<div class="jf-head"><div class="jf-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#jefe-ico"/></svg></div>';
+  h += '<div><b>Feedback de tu jefe</b><span>'+esc(JEFE.nombre)+' · '+esc(JEFE.cargo)+'</span></div></div>';
+  h += '<div class="jf-body">'+feedbackJefe()+'</div>';
+  h += '</div>';
+
   h += '<div class="resumen-acciones">';
   h += '<button class="btn btn-ghost" data-r="inicio">'+ic("atras")+' Volver al inicio</button>';
   h += '<button class="btn btn-primary" data-r="detalle">Ver detalle '+ic("adelante")+'</button>';
@@ -2288,13 +2988,15 @@ function toggleDetalleResumen(vista){
   const cards = $("#view-resumen .estado-fase-card .ef-detalle");
   // muestra / oculta la lista de tickets por fase
   const visible = vista.dataset.detalle==="1";
+  const btn = $('[data-r="detalle"]', vista);
   if(!visible){
     vista.dataset.detalle="1";
     $$(".estado-fase-card .ef-detalle", vista).forEach(x=>x.style.display="flex");
-    toast("Mostrando detalle por ticket.");
+    if(btn) btn.innerHTML = "Ocultar detalle "+ic("atras");
   }else{
     vista.dataset.detalle="0";
     $$(".estado-fase-card .ef-detalle", vista).forEach(x=>x.style.display="none");
+    if(btn) btn.innerHTML = "Ver detalle "+ic("adelante");
   }
 }
 
@@ -2311,8 +3013,9 @@ $$(".nav-item:not(.decorativo)").forEach(b=>{
 /* ============================================================
    LOGIN + NEURAL BACKGROUND
    ============================================================ */
-function generarFondoNeural(){
-  const c = $("#neural-canvas");
+function generarFondoNeural(sel){
+  const c = $(sel || "#neural-canvas");
+  if(!c) return;
   const w = window.innerWidth, h = window.innerHeight;
   const puntos=[];
   const n = Math.min(90, Math.floor(w*h/14000));
@@ -2355,6 +3058,7 @@ function iniciarLogin(){
     $("#pantalla-login").classList.add("hidden");
     $("#app").classList.remove("hidden");
     irInicio();
+    TUTORIAL.iniciar();
   });
   inp.addEventListener("keydown", e=>{ if(e.key==="Enter") btn.click(); });
 }
@@ -2662,13 +3366,22 @@ function encenderMotor(){
     toast("Tu navegador no soporta audio.");
     audioActivo = false; guardarAudio(); pintarBotonSonido(); return;
   }
+  // Ya está sonando: solo asegura el volumen general (calls repetidos no
+  // resetean el loop del secuenciador).
+  if(audioCtx.state==="running" && audioSchedulerTimer){
+    audioMaster.gain.cancelScheduledValues(audioCtx.currentTime);
+    audioMaster.gain.setTargetAtTime(audioActivo ? audioVolumen : 0, audioCtx.currentTime, 0.05);
+    return;
+  }
   // resume() queda pendiente hasta el primer gesto del usuario
   // (click/tecla); al resolverse, si sigue activo, arranca.
   audioCtx.resume().then(()=>{
     if(!audioActivo || audioCtx.state!=="running") return;
-    audioMaster.gain.cancelScheduledValues(audioCtx.currentTime);
-    audioMaster.gain.setTargetAtTime(audioVolumen, audioCtx.currentTime, 0.6);
-    iniciarSecuenciador();
+    if(!audioSchedulerTimer){
+      audioMaster.gain.cancelScheduledValues(audioCtx.currentTime);
+      audioMaster.gain.setTargetAtTime(audioVolumen, audioCtx.currentTime, 0.6);
+      iniciarSecuenciador();
+    }
   }).catch(()=>{});
 }
 function setAudioActivo(on){
@@ -2748,7 +3461,7 @@ function prepararIconos(){
   }
 }
 
-function init(){generarFondoNeural(); prepararIconos(); iniciarLogin(); iniciarSonido();}
+function init(){generarFondoNeural(); prepararIconos(); iniciarLogin(); iniciarSonido(); INTRO.iniciar();}
 
 window.addEventListener("resize", ()=>{ generarFondoNeural(); });
 document.addEventListener("DOMContentLoaded", init);
