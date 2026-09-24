@@ -142,6 +142,15 @@ button{font-family:inherit;cursor:pointer}
 .usuario .ux{line-height:1.25;text-align:right}
 .usuario .ux b{display:block;font-size:13px}
 .usuario .ux span{display:block;font-size:11px;color:var(--t-2)}
+.sonido{display:flex;align-items:center;gap:8px;margin-right:4px}
+.btn-sonido{
+  width:36px;height:36px;flex:0 0 auto;border-radius:9px;cursor:pointer;
+  border:1px solid var(--borde);background:var(--panel-2);color:var(--t-2);
+  display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s;
+}
+.btn-sonido:hover{border-color:var(--borde-2);color:var(--t)}
+.btn-sonido[aria-pressed="true"]{color:var(--celeste);border-color:#2b55b8;box-shadow:inset 0 0 0 1px rgba(43,85,184,.25)}
+.vol{width:90px;accent-color:var(--celeste);cursor:pointer}
 
 .sidebar{
   grid-area:side;display:flex;flex-direction:column;
@@ -614,6 +623,10 @@ button{font-family:inherit;cursor:pointer}
       <div class="sub">PEOPLE | NETWORKS | A SAFER TOMORROW</div>
     </div>
     <div class="usuario">
+      <div class="sonido">
+        <button id="btn-sonido" class="btn-sonido" aria-pressed="true" title="Silenciar música de ambiente"><span id="ico-sonido"></span></button>
+        <input id="vol-sonido" class="vol" type="range" min="0" max="100" value="50" aria-label="Volumen de la música" title="Volumen" />
+      </div>
       <div class="ux"><b id="usuario-cabecera">Alex R.</b><span>NOC Analyst</span></div>
       <div class="avatar" id="avatar-cabecera" aria-hidden="true">AR</div>
     </div>
@@ -739,7 +752,9 @@ const SVG = {
   servidorweb:'<svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="13" rx="2"/><path d="M7 8h10M7 12h6M3 15l-2 5h22l-2-5"/></svg>',
   pcs:'<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="8" height="9" rx="1.5"/><rect x="14" y="4" width="8" height="9" rx="1.5"/><path d="M6 13v3M18 13v3M6 16h12M4 19h16"/></svg>',
   pc:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="15" height="11" rx="2"/><path d="M8 19h5M10.5 14v5M3 19h15"/></svg>',
-  monitor:'<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>'
+  monitor:'<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+  parlante:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.4 5.6a9 9 0 0 1 0 12.8"/></svg>',
+  parlanteOff:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 6 6M22 9l-6 6"/></svg>'
 };
 
 function ic(nombre){ return SVG[nombre]||""; }
@@ -1832,6 +1847,7 @@ function verificar(zonaIn, t){
   }
 
   const correcto = calcularCorrecto(t);
+  if(correcto){ sfxCorrecto(); }else{ sfxIncorrecto(); }
 
   // Solo navegamos al resumen si esta respuesta COMPLETA la fase por
   // primera vez (evita saltar al resumen al reintentar un fallado).
@@ -2344,6 +2360,371 @@ function iniciarLogin(){
 }
 
 /* ============================================================
+   SONIDO AMBIENTE (Web Audio, sin archivos externos)
+   Loop generativo estilo progressive house 122 BPM con estética
+   cyberpunk: bajo electrónico profundo, pads atmosféricos,
+   arpegio sutil con eco, percusión electrónica, texturas glitch
+   y un latido digital (pulso grave de paso del tiempo, no alarma).
+   Evoluciona por capas sin drops: concentración + urgencia leve.
+   Sin voces ni elementos orquestales.
+   ============================================================ */
+const AUDIO_KEY = "nexus-noc-audio";
+const AUDIO_TEMPO = 122; // BPM del loop (rango 120-125)
+let audioCtx = null, audioMaster = null, audioBuses = null, audioNoiseBuf = null;
+let audioSchedulerTimer = null, audioNextTime = 0, audioStep = 0, audioBar = 0;
+let audioActivo = true, audioVolumen = 0.5;
+
+function cargarAudio(){
+  try{
+    const raw = localStorage.getItem(AUDIO_KEY);
+    if(!raw) return; // sin preferencia guardada: suena por defecto
+    const d = JSON.parse(raw);
+    if(d && typeof d.volumen === "number") audioVolumen = Math.min(1, Math.max(0, d.volumen));
+    if(d && typeof d.activo === "boolean") audioActivo = d.activo;
+  }catch(e){ /* almacenamiento no disponible: se ignora */ }
+}
+function guardarAudio(){
+  try{ localStorage.setItem(AUDIO_KEY, JSON.stringify({ volumen: audioVolumen, activo: audioActivo })); }
+  catch(e){ /* almacenamiento no disponible: se ignora */ }
+}
+function mtof(m){ return 440 * Math.pow(2, (m - 69) / 12); }
+// Progresión i–VI–III–VII en La menor: oscura y circular, sin
+// resolución total (tensión leve y constante, ideal de fondo).
+const PROG = [
+  { bajo: 33, acorde: [57, 60, 64] }, // Am
+  { bajo: 29, acorde: [57, 60, 65] }, // F
+  { bajo: 36, acorde: [55, 60, 64] }, // C
+  { bajo: 31, acorde: [55, 59, 62] }  // G
+];
+function crearMotorAudio(){
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) return false;
+  audioCtx = new AC();
+  audioMaster = audioCtx.createGain();
+  audioMaster.gain.value = 0;
+  // Compresor suave: pega la mezcla sin picos molestos.
+  const comp = audioCtx.createDynamicsCompressor();
+  comp.threshold.value = -18; comp.ratio.value = 4;
+  audioMaster.connect(comp); comp.connect(audioCtx.destination);
+  // Buses por capa para la evolución gradual del tema.
+  audioBuses = {};
+  ["pad", "bajo", "arp", "perc", "latido", "glitch", "sfx"].forEach(n=>{
+    const g = audioCtx.createGain();
+    g.gain.value = (n==="bajo" || n==="arp" || n==="glitch") ? 0.0001 : 0.5;
+    g.connect(audioMaster);
+    audioBuses[n] = g;
+  });
+  audioBuses.sfx.gain.value = 0.9; // efectos siempre presentes, sin evolución
+  // Filtro del bajo: se abre con los compases (tensión creciente).
+  audioBuses.filtroBajo = audioCtx.createBiquadFilter();
+  audioBuses.filtroBajo.type = "lowpass"; audioBuses.filtroBajo.frequency.value = 280;
+  audioBuses.filtroBajo.connect(audioBuses.bajo);
+  // Ruido blanco reutilizable (hats, shaker, clap, glitch).
+  const len = Math.floor(audioCtx.sampleRate * 1.5);
+  audioNoiseBuf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+  const ch = audioNoiseBuf.getChannelData(0);
+  for(let i=0;i<len;i++){ ch[i] = Math.random()*2-1; }
+  // Eco con puntillo: espacio cyberpunk para arpegios y glitch.
+  const SPB = 60 / AUDIO_TEMPO;
+  const delay = audioCtx.createDelay(1.0);
+  delay.delayTime.value = SPB * 0.75;
+  const fb = audioCtx.createGain(); fb.gain.value = 0.35;
+  const wet = audioCtx.createGain(); wet.gain.value = 0.5;
+  delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(audioMaster);
+  audioBuses.delay = delay;
+  return true;
+}
+function ruido(t, dur, tipoFiltro, freq, q, pico, bus){
+  const src = audioCtx.createBufferSource();
+  src.buffer = audioNoiseBuf; src.loop = true;
+  const f = audioCtx.createBiquadFilter();
+  f.type = tipoFiltro; f.frequency.value = freq; f.Q.value = q || 1;
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0011, pico), t + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(f); f.connect(g); g.connect(bus);
+  src.start(t); src.stop(t + dur + 0.05);
+}
+function kick(t){
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = "sine";
+  o.frequency.setValueAtTime(150, t);
+  o.frequency.exponentialRampToValueAtTime(42, t + 0.11);
+  g.gain.setValueAtTime(0.42, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.26);
+  o.connect(g); g.connect(audioBuses.perc);
+  o.start(t); o.stop(t + 0.3);
+}
+function latido(t){
+  // Latido digital: doble pulso grave (paso del tiempo, no alarma).
+  [0, 0.13].forEach((off, i)=>{
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = "sine"; o.frequency.value = 58;
+    const pico = i===0 ? 0.2 : 0.14;
+    g.gain.setValueAtTime(0.0001, t + off);
+    g.gain.exponentialRampToValueAtTime(pico, t + off + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + off + 0.17);
+    o.connect(g); g.connect(audioBuses.latido);
+    o.start(t + off); o.stop(t + off + 0.2);
+  });
+}
+function notaBajo(t, midi, acento, dur){
+  const g = audioCtx.createGain();
+  const pico = acento ? 0.26 : 0.19;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(pico, t + 0.015);
+  g.gain.setTargetAtTime(0.0001, t + dur * 0.6, 0.05);
+  g.connect(audioBuses.filtroBajo);
+  const sub = audioCtx.createOscillator();
+  sub.type = "sine"; sub.frequency.value = mtof(midi);
+  sub.connect(g); sub.start(t); sub.stop(t + dur + 0.1);
+  const sierra = audioCtx.createOscillator();
+  sierra.type = "sawtooth"; sierra.frequency.value = mtof(midi);
+  const gs = audioCtx.createGain(); gs.gain.value = 0.35;
+  sierra.connect(gs); gs.connect(g); sierra.start(t); sierra.stop(t + dur + 0.1);
+}
+function acordePad(t, acorde, dur){
+  acorde.forEach(m=>{
+    [-7, 7].forEach(det=>{
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "sawtooth"; o.frequency.value = mtof(m); o.detune.value = det;
+      const f = audioCtx.createBiquadFilter();
+      f.type = "lowpass"; f.frequency.value = 850;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.045, t + 1.1);
+      g.gain.setValueAtTime(0.045, t + Math.max(1.2, dur - 0.9));
+      g.gain.linearRampToValueAtTime(0.0001, t + dur);
+      o.connect(f); f.connect(g); g.connect(audioBuses.pad);
+      o.start(t); o.stop(t + dur + 0.1);
+    });
+  });
+}
+function notaArp(t, midi){
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = "triangle"; o.frequency.value = mtof(midi);
+  const f = audioCtx.createBiquadFilter();
+  f.type = "lowpass"; f.frequency.value = 2600;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.14, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.17);
+  o.connect(f); f.connect(g); g.connect(audioBuses.arp); g.connect(audioBuses.delay);
+  o.start(t); o.stop(t + 0.2);
+}
+function glitchBlip(t){
+  const escala = [76, 79, 81, 84, 86, 88];
+  const m = escala[Math.floor(Math.random() * escala.length)];
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = "square"; o.frequency.value = mtof(m);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.05, t + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  o.connect(g); g.connect(audioBuses.glitch); g.connect(audioBuses.delay);
+  o.start(t); o.stop(t + 0.08);
+}
+function programarPaso(paso, t, STEP, SPB){
+  const s16 = paso % 16;
+  const compasN = Math.floor(paso / 16);
+  const bar = compasN; // alias legible
+  const prog = PROG[compasN % PROG.length];
+  // Base: pad al inicio del compás + latido digital en 1 y 3.
+  if(s16===0){ acordePad(t, prog.acorde, SPB * 4); }
+  if(s16===0 || s16===8){ latido(t); }
+  // Percusión electrónica (entra por etapas, sin drops).
+  if(s16%4===0 && bar>=2){ kick(t); }
+  if(s16%4===2 && bar>=8){ ruido(t, 0.05, "highpass", 7500, 1, 0.12, audioBuses.perc); }
+  if((s16===4 || s16===12) && bar>=12){ ruido(t, 0.13, "bandpass", 1800, 1.2, 0.16, audioBuses.perc); }
+  if(bar>=16 && s16%2===0){
+    const vel = Math.min(1, (bar - 14) / 4) * (s16%4===0 ? 0.05 : 0.035);
+    if(vel>0){ ruido(t, 0.035, "highpass", 9000, 1, vel, audioBuses.perc); }
+  }
+  // Bajo electrónico profundo en corcheas (el bus lo silencia hasta el compás 4).
+  if(s16%2===0){ notaBajo(t, prog.bajo, s16%4===0, STEP * 1.7); }
+  // Arpegio sutil en semicorcheas (el bus lo silencia hasta el compás 8).
+  const seq = [0, 1, 2, 1, 0, 1, 2, 2, 0, 1, 2, 1, 0, 2, 1, 1];
+  notaArp(t, prog.acorde[seq[s16]] + 12);
+  // Texturas glitch esporádicas.
+  if(bar>=8 && Math.random() < Math.min(0.09, 0.04 + bar * 0.0015)){
+    if(Math.random() < 0.5){ glitchBlip(t); }
+    else{ ruido(t, 0.05, "bandpass", 2500 + Math.random()*4000, 8, 0.07, audioBuses.glitch); }
+  }
+}
+function aplicarEvolucion(bar){
+  if(!audioCtx || !audioBuses) return;
+  const t = audioCtx.currentTime;
+  const rampa = (param, v)=>param.setTargetAtTime(Math.max(0.0001, v), t, 2.0);
+  rampa(audioBuses.bajo.gain, bar>=4 ? 0.5 : 0.0001);
+  rampa(audioBuses.arp.gain, bar>=8 ? 0.32 : 0.0001);
+  rampa(audioBuses.glitch.gain, bar>=8 ? 0.5 : 0.0001);
+  // El filtro del bajo se abre con los compases: tensión creciente sin drops.
+  audioBuses.filtroBajo.frequency.setTargetAtTime(280 + Math.min(bar, 28) * 22, t, 2.5);
+}
+function pasoSecuenciador(){
+  const SPB = 60 / AUDIO_TEMPO, STEP = SPB / 4;
+  while(audioNextTime < audioCtx.currentTime + 0.35){
+    programarPaso(audioStep, audioNextTime, STEP, SPB);
+    audioNextTime += STEP;
+    audioStep++;
+    if(audioStep % 16 === 0){ audioBar++; aplicarEvolucion(audioBar); }
+  }
+}
+function iniciarSecuenciador(){
+  detenerSecuenciador();
+  audioStep = 0; audioBar = 0;
+  audioNextTime = audioCtx.currentTime + 0.1;
+  aplicarEvolucion(0);
+  audioSchedulerTimer = setInterval(pasoSecuenciador, 110);
+}
+function detenerSecuenciador(){
+  if(audioSchedulerTimer){ clearInterval(audioSchedulerTimer); audioSchedulerTimer = null; }
+}
+/* ---------------- Efectos (SFX) ---------------- */
+function sfxListo(){
+  return !!(audioCtx && audioMaster && audioBuses && audioBuses.sfx && audioActivo && audioCtx.state==="running");
+}
+function sfxNota(t, freq, dur, pico, tipo){
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = tipo || "sine"; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(pico, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(audioBuses.sfx);
+  o.start(t); o.stop(t + dur + 0.05);
+  return { o, g };
+}
+function sfxClick(){
+  // Tic sutil de interfaz para cualquier botón.
+  if(!sfxListo()) return;
+  sfxNota(audioCtx.currentTime, 1500, 0.05, 0.07, "triangle");
+}
+function sfxCorrecto(){
+  // Acceso concedido: doble click robótico levemente agudo y
+  // ascendente, seco y sin colas (confirmación precisa, sin silbido).
+  if(!sfxListo()) return;
+  const t = audioCtx.currentTime;
+  // 1. Transitorio nítido de activación (corto, sin cola).
+  ruido(t, 0.02, "highpass", 5000, 1, 0.08, audioBuses.sfx);
+  // 2. Dos clicks cuadrados ascendentes 1250 -> 1750 Hz.
+  [[0, 1250, 0.035], [0.055, 1750, 0.05]].forEach(([off, freq, dur])=>{
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = "square"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t + off);
+    g.gain.exponentialRampToValueAtTime(0.12, t + off + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + off + dur);
+    o.connect(g); g.connect(audioBuses.sfx);
+    o.start(t + off); o.stop(t + off + dur + 0.02);
+  });
+}
+function sfxIncorrecto(){
+  // Acceso denegado: click electrónico grave y seco + leve
+  // descenso con textura de interferencia (alerta suave).
+  if(!sfxListo()) return;
+  const t = audioCtx.currentTime;
+  // 1. Click seco de rechazo (golpe grave, sin cola).
+  const c = audioCtx.createOscillator(), gc = audioCtx.createGain();
+  c.type = "square"; c.frequency.value = 160;
+  gc.gain.setValueAtTime(0.14, t);
+  gc.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+  c.connect(gc); gc.connect(audioBuses.sfx);
+  c.start(t); c.stop(t + 0.07);
+  // 2. Cuerpo ligeramente descendente 320 -> 170 Hz, opaco.
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  const f = audioCtx.createBiquadFilter();
+  f.type = "lowpass"; f.frequency.value = 800;
+  o.type = "square";
+  o.frequency.setValueAtTime(320, t);
+  o.frequency.exponentialRampToValueAtTime(170, t + 0.14);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.13, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  o.connect(f); f.connect(g); g.connect(audioBuses.sfx);
+  o.start(t); o.stop(t + 0.22);
+  // 3. Interferencia glitch: micro-cortes descendentes, secos.
+  [0, 1, 2].forEach(i=>{
+    const gt = t + 0.02 + i * 0.03;
+    const go = audioCtx.createOscillator(), gg = audioCtx.createGain();
+    go.type = "square"; go.frequency.value = 1200 - i * 220;
+    gg.gain.setValueAtTime(0.05, gt);
+    gg.gain.exponentialRampToValueAtTime(0.0001, gt + 0.018);
+    go.connect(gg); gg.connect(audioBuses.sfx);
+    go.start(gt); go.stop(gt + 0.03);
+  });
+}
+function pintarBotonSonido(){
+  const btn = $("#btn-sonido"), ico = $("#ico-sonido");
+  if(!btn || !ico) return;
+  ico.innerHTML = ic(audioActivo ? "parlante" : "parlanteOff");
+  btn.setAttribute("aria-pressed", audioActivo ? "true" : "false");
+  btn.title = audioActivo ? "Silenciar música de ambiente" : "Activar música de ambiente";
+}
+function encenderMotor(){
+  if(!audioCtx && !crearMotorAudio()){
+    toast("Tu navegador no soporta audio.");
+    audioActivo = false; guardarAudio(); pintarBotonSonido(); return;
+  }
+  // resume() queda pendiente hasta el primer gesto del usuario
+  // (click/tecla); al resolverse, si sigue activo, arranca.
+  audioCtx.resume().then(()=>{
+    if(!audioActivo || audioCtx.state!=="running") return;
+    audioMaster.gain.cancelScheduledValues(audioCtx.currentTime);
+    audioMaster.gain.setTargetAtTime(audioVolumen, audioCtx.currentTime, 0.6);
+    iniciarSecuenciador();
+  }).catch(()=>{});
+}
+function setAudioActivo(on){
+  audioActivo = on;
+  guardarAudio();
+  if(on){
+    encenderMotor();
+  }else{
+    detenerSecuenciador();
+    if(audioCtx && audioMaster){
+      audioMaster.gain.setTargetAtTime(0, audioCtx.currentTime, 0.15);
+    }
+  }
+  pintarBotonSonido();
+}
+function setVolumen(v){
+  audioVolumen = Math.min(1, Math.max(0, v));
+  guardarAudio();
+  const slider = $("#vol-sonido");
+  if(slider) slider.value = Math.round(audioVolumen * 100);
+  if(audioCtx && audioMaster && audioActivo){
+    audioMaster.gain.setTargetAtTime(audioVolumen, audioCtx.currentTime, 0.1);
+  }
+}
+function iniciarSonido(){
+  // Arranca encendido por defecto desde la pantalla de inicio.
+  // Los navegadores bloquean el autoplay con sonido hasta el primer
+  // gesto del usuario, por eso se intenta al cargar y se reintenta
+  // en el primer click/tecla (p. ej. el propio "Ingresar").
+  cargarAudio();
+  pintarBotonSonido();
+  ["pointerdown", "keydown"].forEach(ev=>document.addEventListener(ev, ()=>{
+    if(audioActivo && audioCtx && audioCtx.state==="suspended"){ encenderMotor(); }
+  }));
+  if(audioActivo){ encenderMotor(); }
+  const slider = $("#vol-sonido");
+  if(slider){
+    slider.value = Math.round(audioVolumen * 100);
+    slider.addEventListener("input", ()=>{
+      setVolumen(slider.value / 100);
+      if(!audioActivo) setAudioActivo(true); // mover el volumen la enciende
+    });
+  }
+  const btn = $("#btn-sonido");
+  if(btn) btn.addEventListener("click", ()=> setAudioActivo(!audioActivo));
+  // Tic de interfaz en cualquier botón, salvo Verificar (que ya
+  // tiene sus sonidos propios de respuesta correcta/incorrecta).
+  document.addEventListener("click", (e)=>{
+    const b = (e.target && e.target.closest) ? e.target.closest("button") : null;
+    if(!b || b.disabled) return;
+    if(b.id==="btn-verificar") return;
+    sfxClick();
+  });
+}
+
+/* ============================================================
    ARRANQUE
    ============================================================ */
 function prepararIconos(){
@@ -2367,7 +2748,7 @@ function prepararIconos(){
   }
 }
 
-function init(){generarFondoNeural(); prepararIconos(); iniciarLogin();}
+function init(){generarFondoNeural(); prepararIconos(); iniciarLogin(); iniciarSonido();}
 
 window.addEventListener("resize", ()=>{ generarFondoNeural(); });
 document.addEventListener("DOMContentLoaded", init);
